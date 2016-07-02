@@ -102,6 +102,14 @@ kernel void grid_512(global int *data) {
 }
 """, 'grid': 512
 },
+    {'name': 'grid_768',
+    'source': r"""
+kernel void grid_768(global int *data) {
+    for(int i = 0; i < 1000000; i++) {
+    }
+}
+""", 'grid': 768
+},
     {'name': 'grid_1024',
     'source': r"""
 kernel void grid_1024(global int *data) {
