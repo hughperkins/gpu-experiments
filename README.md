@@ -53,6 +53,16 @@ Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inli
 
 - with optimizations turned off, store to shared memory not optimized away (kernel01)
 
+```
+kernel_copy_local_from_global 34.26074981689453
+kernel_copy_local_from_global_gid 48.19059371948242
+kernel_copy_local_to_global 32.5167179107666
+kernel_copy_local_to_global_gid 58.62689018249512
+kernel_init_local 384.2778205871582
+kernel_init_local_noloop 19.541501998901367
+kernel_store_to_local 9.908437728881836
+```
+
 ## maths
 
 - we use shared memory, to avoid both things being optimized away (private memory), or global memory associated slowdowns (global memory)
@@ -75,4 +85,5 @@ kernel_int_shift 10.795354843139648
 - float mul takes same time as nop :-O
 - it seems like maybe int stuff happens via an int unit, that is particularly slow?
 - float add is slower than float mul :-O
+
 
