@@ -39,3 +39,40 @@ other way, that variable entirely vanishes  (kernels 1 to 8 or so)
 - get local id takes noticeable time (kernel 23, kernel 25)
 - access pattern for writes to global memory seems to make little difference? (kernels 28 to 32)
 
+## inlining?
+
+Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)
+
+- no, see kernel 1, 2
+- #define runs 5 times faster!  (kernel 3)
+- with optimizatoins on, #define and static inline run in same time (kernel 1,3,4,5)
+
+## shared memory
+
+[gpuexperiments/sharedmemory.py](gpuexperiments/sharedmemory.py)
+
+- with optimizations turned off, store to shared memory not optimized away (kernel01)
+
+## maths
+
+- we use shared memory, to avoid both things being optimized away (private memory), or global memory associated slowdowns (global memory)
+- [gpuexperiments/calcs.py](gpuexperiments/calcs.py)
+
+```
+kernel_float_add 10.192394256591797
+kernel_float_div 17.50779151916504
+kernel_float_mul 9.238243103027344
+kernel_float_nop 9.191274642944336
+kernel_int_add 10.240554809570312
+kernel_int_div 51.10955238342285
+kernel_int_mul 15.785455703735352
+kernel_int_nop 9.370088577270508
+kernel_int_shift 10.795354843139648
+```
+- int is much slower than float calcs
+- int div is particularly slow
+- float div is slower than mult, but not nearly as slow as int div
+- float mul takes same time as nop :-O
+- it seems like maybe int stuff happens via an int unit, that is particularly slow?
+- float add is slower than float mul :-O
+
