@@ -85,6 +85,30 @@ kernel void grid_128(global int *data) {
     }
 }
 """, 'grid': 128
+},
+    {'name': 'grid_256',
+    'source': r"""
+kernel void grid_256(global int *data) {
+    for(int i = 0; i < 1000000; i++) {
+    }
+}
+""", 'grid': 256
+},
+    {'name': 'grid_512',
+    'source': r"""
+kernel void grid_512(global int *data) {
+    for(int i = 0; i < 1000000; i++) {
+    }
+}
+""", 'grid': 512
+},
+    {'name': 'grid_1024',
+    'source': r"""
+kernel void grid_1024(global int *data) {
+    for(int i = 0; i < 1000000; i++) {
+    }
+}
+""", 'grid': 1024
 }
 ]
 
