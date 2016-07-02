@@ -87,3 +87,20 @@ kernel_int_shift 10.795354843139648
 - float add is slower than float mul :-O
 
 
+## for loops
+
+[gpuexperiments/forloop.py](gpuexperiments/forloop.py)
+
+```
+kernel_for_loop_1e4 1.1463165283203125
+kernel_for_loop_1e5 13.753890991210938
+kernel_for_loop_1e5_div_const 115.87834358215332
+kernel_for_loop_1e5_float_add_const 14.91856575012207
+kernel_for_loop_1e5_float_div_const 56.73623085021973
+kernel_for_loop_1e5_float_mul_const 16.42632484436035
+kernel_for_loop_1e5_mul_const 21.55447006225586
+kernel_for_loop_1e5_sum 15.58828353881836
+kernel_for_loop_1e5_sum_const 14.525890350341797
+kernel_for_loop_1e6 109.52186584472656
+```
+
