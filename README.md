@@ -63,6 +63,17 @@ kernel_init_local_noloop 19.541501998901367
 kernel_store_to_local 9.908437728881836
 ```
 
+Titan X:
+```
+kernel_copy_local_from_global 4.500865936279297
+kernel_copy_local_from_global_gid 3.6003589630126953
+kernel_copy_local_to_global 4.492759704589844
+kernel_copy_local_to_global_gid 3.99017333984375
+kernel_init_local 28.486013412475586
+kernel_init_local_noloop 1.9900798797607422
+kernel_store_to_local 1.9931793212890625
+```
+
 ## maths
 
 - we use shared memory, to avoid both things being optimized away (private memory), or global memory associated slowdowns (global memory)
@@ -86,6 +97,19 @@ kernel_int_shift 10.795354843139648
 - it seems like maybe int stuff happens via an int unit, that is particularly slow?
 - float add is slower than float mul :-O
 
+Titan X:
+```
+kernel01 2.2470951080322266
+kernel_float_add 2.2232532501220703
+kernel_float_div 2.227783203125
+kernel_float_mul 2.229928970336914
+kernel_float_nop 2.2292137145996094
+kernel_int_add 2.2275447845458984
+kernel_int_div 5.436897277832031
+kernel_int_mul 2.2263526916503906
+kernel_int_nop 2.223968505859375
+kernel_int_shift 2.2313594818115234
+```
 
 ## for loops
 
@@ -102,6 +126,19 @@ kernel_for_loop_1e5_mul_const 21.55447006225586
 kernel_for_loop_1e5_sum 15.58828353881836
 kernel_for_loop_1e5_sum_const 14.525890350341797
 kernel_for_loop_1e6 109.52186584472656
+```
+Titan X:
+```
+kernel_for_loop_1e4 1.0766983032226562
+kernel_for_loop_1e5 10.216712951660156
+kernel_for_loop_1e5_div_const 97.53608703613281
+kernel_for_loop_1e5_float_add_const 11.809587478637695
+kernel_for_loop_1e5_float_div_const 47.07169532775879
+kernel_for_loop_1e5_float_mul_const 13.068437576293945
+kernel_for_loop_1e5_mul_const 17.682790756225586
+kernel_for_loop_1e5_sum 11.813640594482422
+kernel_for_loop_1e5_sum_const 11.833667755126953
+kernel_for_loop_1e6 90.73615074157715
 ```
 
 ## grid size
@@ -121,13 +158,16 @@ grid_128 349.22146797180176
 
 Titan X:
 ```
-grid_001 92.11945533752441
-grid_008 92.44513511657715
-grid_016 92.46420860290527
-grid_032 92.437744140625
-grid_048 92.43941307067871
-grid_064 92.44084358215332
-grid_128 92.90647506713867
+grid_001 92.00358390808105
+grid_008 92.437744140625
+grid_016 92.44227409362793
+grid_032 92.4527645111084
+grid_048 92.45562553405762
+grid_064 92.45038032531738
+grid_128 92.88883209228516
+grid_256 93.48249435424805
+grid_512 96.0536003112793
+grid_1024 237.98060417175293
 ```
 
 
