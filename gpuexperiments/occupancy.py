@@ -30,15 +30,6 @@ q = cl.CommandQueue(ctx)
 
 mf = cl.mem_flags
 
-code_template = r"""
-kernel void {{name}} (global int *data) {
-    local float F[{{size}}];
-    F[0] = 123;
-    for(int i = 0; i < 10000; i++) {
-    }
-}
-"""
-
 def clearComputeCache():
     cache_dir = join(os.environ['HOME'], '.nv/ComputeCache')
     for subdir in os.listdir(cache_dir):
@@ -66,6 +57,7 @@ def getPtx(kernelName):
 
 def buildKernel(name, source):
     options = '-cl-opt-disable'
+    # options = ''
     return cl.Program(ctx, source).build(options=options).__getattr__(name) 
 
 d = np.zeros((1024*1024 * 32 * 2,), dtype=np.float32)
@@ -82,8 +74,18 @@ def timeKernel(name, grid_x, kernel):
     return timecheck(name)
     # print(getPtx('mykernel'))
 
-shared = 0
 times = []
+
+code_template = r"""
+kernel void {{name}} (global int *data) {
+    local float F[{{size}}];
+    F[0] = 123;
+    for(int i = 0; i < 10000; i++) {
+    }
+}
+"""
+
+shared = 0
 template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
 while shared < 256:
 #    source = code_template
@@ -95,25 +97,57 @@ while shared < 256:
     source = template.render(name=name, size=size)
     try:
         kernel = buildKernel(name, source)
+        for it in range(3):
+            t = timeKernel(name, 1024, kernel)
+        print(getPtx(name))
     except Exception as e:
         print(e)
         break
     # print('source', source)
-    print(getPtx(name))
-    for it in range(3):
-        t = timeKernel(name, 1024, kernel)
     times.append({'name': name, 'time': t})
     if shared == 0:
         shared = 1
     else:
         shared *= 2
 
+private_template = r"""
+kernel void {{name}} (global int *data) {
+    local float foo[1];
+    {% for i in range(size) %}
+    private int i{{i}};
+    foo[0] = i{{i}};
+    {% endfor %}
+    for(int i = 0; i < 10000; i++) {
+    }
+}
+"""
+
+private = 0
+template = jinja2.Template(private_template, undefined=jinja2.StrictUndefined)
+while private < 4096:
+#    source = code_template
+    name = 'private_%s' % private
+    clearComputeCache()
+    size = private // 4
+    if size == 0:
+        size = 1
+    source = template.render(name=name, size=size)
+    print('source', source)
+    try:
+        kernel = buildKernel(name, source)
+        for it in range(3):
+            t = timeKernel(name, 1024, kernel)
+    except Exception as e:
+        print(e)
+        break
+    # print('source', source)
+    print(getPtx(name))
+    times.append({'name': name, 'time': t})
+    if private == 0:
+        private = 1
+    else:
+        private *= 2
+
 for time_info in times:
     print(time_info['name'], time_info['time'])
-
-#    kernel = buildKernel(name, source)
-#    print('built kernel')
-#    for it in range(3):
-#        t = timeKernel(name, grid, kernel)
-#        times[name] = t
 
