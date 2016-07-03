@@ -53,7 +53,27 @@ def getPtx(kernelName):
                filepath_utf8 += chr(byte)
     # print('filepath', filepath)
     #print(kernelName)
-    print(filepath_utf8.split('--opt-level')[0])
+    ptx = filepath_utf8.split('--opt-level')[0]
+    print(ptx)
+    return ptx
+
+def dumpSass(kernelName):
+    ptx = getPtx(kernelName)
+    ptx = ptx.split('.version 5.0')[1].split('A')[0]
+    ptx = '.version 4.3\n' + ptx
+    # print('ptx', ptx)
+    #sys.exit(1)
+    with open('/tmp/~kernel.ptx', 'w') as f:
+        f.write(ptx)
+    print(subprocess.check_output([
+        'ptxas',
+        '--gpu-name', 'sm_50',
+        '--output-file', '/tmp/~kernel.o',
+        '/tmp/~kernel.ptx']).decode('utf-8'))
+    sass = subprocess.check_output([
+        'cuobjdump', '--dump-sass', '/tmp/~kernel.o']).decode('utf-8')
+    print(sass)
+    return sass
 
 def buildKernel(name, source):
     options = '-cl-opt-disable'
@@ -85,7 +105,7 @@ kernel void {{name}} (global int *data) {
 }
 """
 
-shared = 0
+shared = 0 # 1024
 template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
 while shared < 256:
 #    source = code_template
@@ -112,41 +132,108 @@ while shared < 256:
 
 private_template = r"""
 kernel void {{name}} (global int *data) {
-    local float foo[1];
-    {% for i in range(size) %}
+    local float foo[{{size}}];
+    {% for i in range(0, size) %}
     private int i{{i}};
+    {% endfor %}
+    {% for i in range(0, size) %}
     foo[0] = i{{i}};
     {% endfor %}
+    int sum = 0;
     for(int i = 0; i < 10000; i++) {
+        sum += data[i];
     }
+    data[0] = sum;
 }
 """
 
-private = 0
-template = jinja2.Template(private_template, undefined=jinja2.StrictUndefined)
-while private < 4096:
-#    source = code_template
-    name = 'private_%s' % private
-    clearComputeCache()
-    size = private // 4
-    if size == 0:
-        size = 1
-    source = template.render(name=name, size=size)
-    print('source', source)
-    try:
-        kernel = buildKernel(name, source)
-        for it in range(3):
-            t = timeKernel(name, 1024, kernel)
-    except Exception as e:
-        print(e)
-        break
-    # print('source', source)
-    print(getPtx(name))
-    times.append({'name': name, 'time': t})
-    if private == 0:
-        private = 1
-    else:
-        private *= 2
+private_template1 = r"""
+kernel void {{name}} (global int *data) {
+    {% for i in range(0, size) %}
+    private int i{{i}};
+    {% endfor %}
+    {% for i in range(0, size) %}
+    i{{i}} = data[{{i}}];
+    {% endfor %}
+    int sum = 0;
+    {% for i in range(0, size) %}
+        sum += i{{i}};
+    {% endfor %}
+    data[0] = sum;
+    {% if addloop %}
+    sum = 0;
+    for(int i = 0; i < 10000; i++) {
+        sum += data[i];
+    }
+    data[1] = sum;
+    {% endif %}
+}
+"""
+
+private_template2 = r"""
+void myfunc(
+    {% for i in range(0, size) %}
+      int i{{i}},
+    {% endfor %}
+    int ipad
+) {
+}
+
+kernel void {{name}} (global int *data) {
+    {% for i in range(0, size) %}
+    private int i{{i}} = data[{{i}}];
+    {% endfor %}
+    myfunc(
+        {% for i in range(0, size) %}
+        i{{i}}, 
+        {% endfor %}
+        0
+    );
+    int sum = 0;
+    {% for i in range(0, size) %}
+        sum += i{{i}};
+    {% endfor %}
+    data[0] = sum;
+    {% if addloop %}
+    sum = 0;
+    for(int i = 0; i < 10000; i++) {
+        sum += data[i];
+    }
+    data[1] = sum;
+    {% endif %}
+}
+"""
+
+template = jinja2.Template(private_template2, undefined=jinja2.StrictUndefined)
+for add_loop in [False, True]:
+    private = 0
+    while private <= 2048:
+    #    source = code_template
+        add_loop_str = '_looped'
+        if not add_loop:
+            add_loop_str = ''
+        name = 'private%s_%s' % (add_loop_str, private)
+        clearComputeCache()
+        size = private
+        if size == 0:
+            size = 1
+        source = template.render(name=name, size=size, addloop=add_loop)
+        # print('source', source)
+        try:
+            kernel = buildKernel(name, source)
+            for it in range(3):
+                t = timeKernel(name, 1024, kernel)
+        except Exception as e:
+            print(e)
+            break
+        # print('source', source)
+        print(getPtx(name))
+        print(dumpSass(name))
+        times.append({'name': name, 'time': t})
+        if private == 0:
+            private = 1
+        else:
+            private *= 2
 
 for time_info in times:
     print(time_info['name'], time_info['time'])
