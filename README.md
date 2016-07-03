@@ -173,6 +173,17 @@ grid_1024 237.98060417175293
 
 ## occupancy
 
+- shared occupancy was fairly straightforward, but note that we start seeing an effect from as low as 8KB of shared memory
+upwards
+- (not shown here)  Changing the workgroup size from 32 to 512, meant that 8KB of shared memory was ok, but that
+was presumably because the raiot of shared-memory/thread was lower
+- for private memory, it took a lot of effort to get this working
+    - registers are automtaically optimized away to hardly any, when going from OpenCL => PTX
+    - this can be handled by eg storing/loading each register to/from shared memory
+    - however, it turned out that even if the ptx is using eg 64 registers, the sass might not be
+    - finally, a non-inlined function call was added, with the appropriate number of parameters correpsonding to the number of desired registers, and this conveted to a SASS file with the appropriat enumber of registers
+- we can see that up to use of 64 registers, performance is unaffected by adding registers, then starts to rise
+
 [gpuexperiments/occupancy.py](gpuexperiments/occupancy.py)
 
 ```
