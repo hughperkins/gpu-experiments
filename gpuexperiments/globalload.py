@@ -67,6 +67,17 @@ kernel void kernel_ilp_load2(global float *data, global float *out) {
     {{reduce}}
 }
 """
+,    'kernel_ilp_load2b': r"""
+kernel void kernel_ilp_load2b(global float *data, global float *out) {
+    // lets load some floats...
+    int tid = get_local_id(0);
+    float sum = 0.0f;
+    for(int i = 0; i < (51200<<5); i+=32) {
+        sum += data[i + tid];
+    }
+    {{reduce}}
+}
+"""
 ,
     'kernel_ilp_load3': r"""
 kernel void kernel_ilp_load3(global float *data, global float *out) {
@@ -190,6 +201,37 @@ kernel void kernel_ilp_load1e(global float *data, global float *out) {
     {{reduce}}
 }
 """
+,
+    'kernel_ilp_load1f': r"""
+kernel void kernel_ilp_load1f(global float *data, global float *out) {
+    // lets load some floats...
+    int tid = get_local_id(0);
+    int offset = tid * 51200;
+    float sum_[8];
+    {% for i in range(8) %}
+      sum_[{{i}}] = 0;
+    {% endfor %}
+    int offset4 = offset >> 2;
+    global float4 *data4 = (global float4 *)data;
+    float4 val4[2];
+    float *val = (float *)val4;
+    for(int i = 0; i < (51200 >> 2); i+= 2) {
+        val4[0] = data4[i + offset4];
+        val4[1] = data4[i + 1 + offset4];
+        sum_[0] += val[0];
+        sum_[1] += val[1];
+        sum_[2] += val[2];
+        sum_[3] += val[3];
+
+        sum_[4] += val[4];
+        sum_[5] += val[5];
+        sum_[6] += val[6];
+        sum_[7] += val[7];
+    }
+    float sum = (sum_[0] + sum_[1]) + (sum_[2] + sum_[3]) + sum_[4] + sum_[5] + sum_[6] + sum_[7];
+    {{reduce}}
+}
+"""
 }
 
 optimized = set()
@@ -228,7 +270,10 @@ def buildKernel(name, source):
 
 d = np.zeros((1024*1024 * 32 * 2,), dtype=np.float32)
 np.random.seed(123)
-d[:] = np.random.uniform(*d.shape)
+d[:] = np.random.uniform(size=d.shape)
+#print(d.max())
+#print(d.min())
+#sys.exit(1)
 d_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=d)
 
 out = np.zeros((256,), dtype=np.float32)
@@ -265,7 +310,7 @@ for name, source in sorted(sources.items()):
         if last_sum is None:
             last_sum = this_sum
         else:
-            if abs(last_sum - this_sum) >= 1e-2:
+            if abs(last_sum - this_sum) > 2:
                 print('%s last %s this %s' % (name, last_sum, this_sum))
                 assert last_sum == this_sum
         times_sum += this_time

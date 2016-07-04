@@ -222,4 +222,21 @@ private_looped_1024 321.1710453033447
 private_looped_2048 355.73697090148926
 ```
 
+## load from global
+
+[gpuexperiments/globalload.py](gpuexperiments/globalload.py)
+
+```
+kernel_ilp_load1 35.62347094217936
+kernel_ilp_load1b 37.770748138427734
+kernel_ilp_load1c 41.27724965413412
+kernel_ilp_load1d 33.61137708028158
+kernel_ilp_load1e 15.196800231933594
+kernel_ilp_load1f 15.071233113606771
+kernel_ilp_load2 49.576759338378906
+kernel_ilp_load2b 43.80480448404948
+kernel_ilp_load3 46.45133018493652
+kernel_ilp_load4 42.43572552998861
+kernel_ilp_load5 41.69940948486328
+```
 
