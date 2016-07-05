@@ -240,3 +240,17 @@ kernel_ilp_load4 42.43572552998861
 kernel_ilp_load5 41.69940948486328
 ```
 
+## Theoretical limits
+
+940M, GM108M (rev a2):
+- memory bandwidth: 14.40GB/s
+- flops: 823.3GFLOPS (790.3 per wikipedia?)
+
+Titan X:
+- memory bandwidth: 336GB/s
+- flops: 6166 GFLOPS
+
+References:
+- https://en.wikipedia.org/wiki/GeForce_900_series
+- https://www.techpowerup.com/gpudb/2643/geforce-940m
+
