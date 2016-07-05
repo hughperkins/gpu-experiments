@@ -1,4 +1,7 @@
 # gpu-experiments
+
+## Specific
+
 Informal experiments on various gpu kernel questions
 
 With varying level of rigorousness...
@@ -7,17 +10,17 @@ Approximate target kernel I'm pondering as I write this https://github.com/hughp
 
 Terminology will be interchangeably cuda/opencl.  Experiments will run on different devices.  Where not specified, they are running on NVIDIA 940M, which is a Maxwell.
 
-## Effect of barrier on performance
+### Effect of barrier on performance
 
 
 
-## Effect of workgroupsize on performance
+### Effect of workgroupsize on performance
 
 
-## Effect of memory layout for writes to global memory
+### Effect of memory layout for writes to global memory
 
 
-## If no optimization, does code with no side-effects get removed?
+### If no optimization, does code with no side-effects get removed?
 
 [gpuexperiments/optimization_shortcutting.py](gpuexperiments/optimization_shortcutting.py)
 
@@ -39,7 +42,23 @@ other way, that variable entirely vanishes  (kernels 1 to 8 or so)
 - get local id takes noticeable time (kernel 23, kernel 25)
 - access pattern for writes to global memory seems to make little difference? (kernels 28 to 32)
 
-## inlining?
+[gpuexperiments/optimization2.py](gpuexperiments/optimization2.py)
+
+```
+k1_noopt_128 140.65217971801758 0.0008474924483589801
+k1_opt_128 9.615182876586914 0.01239723276054452
+k1_noprag_noopt_128 16.440153121948242 0.007250641722862736
+k1_noprag_opt_128 6.257295608520508 0.019050028576871787
+k1_fma_noopt_128 483.37507247924805 0.0002466028286168346
+k1_fma_opt_128 9.495258331298828 0.012553809069452117
+```
+- looks like optimizatoin makes a huge difference. Why?
+- unroll is part of the story: `#pragma unroll` seems to do nothing, when optimization is turned off
+  - the `noprag` kernels use jinja2 to unroll, rather than using `#pragma unroll`
+  - but still slower, so not the whole story
+
+
+### inlining?
 
 Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)
 
@@ -47,7 +66,7 @@ Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inli
 - #define runs 5 times faster!  (kernel 3)
 - with optimizatoins on, #define and static inline run in same time (kernel 1,3,4,5)
 
-## shared memory
+### shared memory
 
 [gpuexperiments/sharedmemory.py](gpuexperiments/sharedmemory.py)
 
@@ -74,7 +93,7 @@ kernel_init_local_noloop 1.9900798797607422
 kernel_store_to_local 1.9931793212890625
 ```
 
-## maths
+### maths
 
 - we use shared memory, to avoid both things being optimized away (private memory), or global memory associated slowdowns (global memory)
 - [gpuexperiments/calcs.py](gpuexperiments/calcs.py)
@@ -111,7 +130,7 @@ kernel_int_nop 2.223968505859375
 kernel_int_shift 2.2313594818115234
 ```
 
-## for loops
+### for loops
 
 [gpuexperiments/forloop.py](gpuexperiments/forloop.py)
 
@@ -141,7 +160,7 @@ kernel_for_loop_1e5_sum_const 11.833667755126953
 kernel_for_loop_1e6 90.73615074157715
 ```
 
-## grid size
+### grid size
 
 [gpuexperiments/gridsize.py](gpuexperiments/gridsize.py)
 
@@ -171,7 +190,7 @@ grid_768 129.60028648376465
 grid_1024 237.98060417175293
 ```
 
-## occupancy
+### occupancy
 
 - shared occupancy was fairly straightforward, but note that we start seeing an effect from as low as 8KB of shared memory
 upwards
@@ -222,7 +241,7 @@ private_looped_1024 321.1710453033447
 private_looped_2048 355.73697090148926
 ```
 
-## load from global
+### load from global
 
 [gpuexperiments/globalload.py](gpuexperiments/globalload.py)
 
@@ -239,6 +258,14 @@ kernel_ilp_load3 46.45133018493652
 kernel_ilp_load4 42.43572552998861
 kernel_ilp_load5 41.69940948486328
 ```
+
+## Reproduce Volkov's results
+
+Reference: http://sbel.wisc.edu/Courses/ME964/Literature/talkVolkov10-GTC.pdf
+
+These experiments are carried out on 940M, using opencl, except where otherwise stated.
+
+
 
 ## Theoretical limits
 
