@@ -93,7 +93,7 @@ Basically the same?  Just one has `c[0x2][0x0]` and one has `RZ`.  Could be the 
         /*0088*/         {         FFMA R7, R2, R0, R5;                       /* 0x5980028000070207 */
         /*0090*/               @P0 BRA 0x50;        }     
 ```
-Exactly identical to optimized version?  But 20 times slower:
+Exactly identical to optimized version?  But 5 times slower:
 ```
 k1_opt_128 9.421348571777344 0.012652292742180382
 k1_noprag4_noopt_128 46.595096588134766 0.002558244727120153
