@@ -59,7 +59,7 @@ def getPtx(kernelName):
 
 def dumpSass(kernelName):
     ptx = getPtx(kernelName)
-    ptx = ptx.split('.version 5.0')[1].split('A')[0]
+    ptx = ptx.split('.version 5.0')[1].split('A')[0].split('--reserve-null-pointer')[0]
     ptx = '.version 4.3\n' + ptx
     print('ptx', ptx)
     # sys.exit(1)
@@ -73,7 +73,7 @@ def dumpSass(kernelName):
     sass = subprocess.check_output([
         'cuobjdump', '--dump-sass', '/tmp/~kernel.o']).decode('utf-8')
     print(sass)
-    sys.exit(1)
+    # sys.exit(1)
     return sass
 
 def buildKernel(name, source, options='-cl-opt-disable'):
@@ -137,8 +137,8 @@ code_template_nopragma = r"""
 
 experiments = [
     #{'name': 'k1_noopt_{block}', 'code': code_template, 'options': '-cl-opt-disable', 'template_args': {'fma': False}},
-    {'name': 'k1_opt_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
-    {'name': 'k1_noprag4_noopt_{block}', 'code': code_template_nopragma, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 4}}
+    {'name': 'k1_opt_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}}
+    #{'name': 'k1_noprag4_noopt_{block}', 'code': code_template_nopragma, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 4}}
     #{'name': 'k1_noprag128_noopt_{block}', 'code': code_template_nopragma, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 128}}
     #{'name': 'k1_noprag128_opt_{block}', 'code': code_template_nopragma, 'options': '', 'template_args': {'fma': False, 'unroll': 128}}
     #{'name': 'k1_fma_noopt_{block}', 'code': code_template, 'options': '-cl-opt-disable', 'template_args': {'fma': True}},

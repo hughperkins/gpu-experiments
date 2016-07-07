@@ -57,6 +57,31 @@ k1_fma_opt_128 9.495258331298828 0.012553809069452117
   - the `noprag` kernels use jinja2 to unroll, rather than using `#pragma unroll`
   - but still slower, so not the whole story
 
+Going right down to the SASS, no obious differences.  For optimized, the sass for the loop is:
+```
+        /*0058*/                   IADD32I R4, R4, 0x4;                       /* 0x1c00000000470404 */
+                                                                              /* 0x301fd800fe2d07f5 */
+        /*0068*/                   FFMA R2, R7, R0.reuse, R5.reuse;           /* 0x5980028000070702 */
+        /*0070*/                   ISETP.NE.AND P0, PT, R4, RZ, PT;           /* 0x5b6b03800ff70407 */
+        /*0078*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
+                                                                              /* 0x001ff400fe0c07f6 */
+        /*0088*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
+        /*0090*/         {         FFMA R7, R2, R0, R5;                       /* 0x5980028000070207 */
+        /*0098*/               @P0 BRA 0x58;        }                         /* 0xe2400ffffb80000f */
+```
+For un-optimized, it is:
+```
+        /*0050*/                   IADD32I R4, R4, 0x4;                                /* 0x1c00000000470404 */
+        /*0058*/                   FFMA R2, R7, R0.reuse, R5.reuse;                    /* 0x5980028000070702 */
+                                                                                       /* 0x301fd980fec007f1 */
+        /*0068*/                   ISETP.LT.AND P0, PT, R4, c[0x2][0x0], PT;           /* 0x4b63038800070407 */
+        /*0070*/                   FFMA R2, R2, R0.reuse, R5.reuse;                    /* 0x5980028000070202 */
+        /*0078*/                   FFMA R2, R2, R0.reuse, R5.reuse;                    /* 0x5980028000070202 */
+                                                                                       /* 0x001fc400ffa007f0 */
+        /*0088*/         {         FFMA R7, R2, R0, R5;                                /* 0x5980028000070207 */
+        /*0090*/               @P0 BRA 0x50;        }                                  /* 0xe2400ffffb80000f */
+```
+Basically the same?  Just one has `c[0x2][0x0]` and one has `RZ`
 
 ### inlining?
 
