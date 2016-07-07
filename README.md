@@ -81,7 +81,24 @@ For un-optimized, it is:
         /*0088*/         {         FFMA R7, R2, R0, R5;                                /* 0x5980028000070207 */
         /*0090*/               @P0 BRA 0x50;        }                                  /* 0xe2400ffffb80000f */
 ```
-Basically the same?  Just one has `c[0x2][0x0]` and one has `RZ`
+Basically the same?  Just one has `c[0x2][0x0]` and one has `RZ`.  Could be the reason though, so modified the nopragma kernel, code nopragma2, which gave sass:
+```
+        /*0050*/                   IADD32I R4, R4, 0x1;                       /* 0x1c00000000170404 */
+        /*0058*/                   FFMA R2, R7, R0.reuse, R5.reuse;           /* 0x5980028000070702 */
+                                                                              /* 0x301fd980fec007f1 */
+        /*0068*/                   ISETP.NE.AND P0, PT, R4, RZ, PT;           /* 0x5b6b03800ff70407 */
+        /*0070*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
+        /*0078*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
+                                                                              /* 0x001fc400ffa007f0 */
+        /*0088*/         {         FFMA R7, R2, R0, R5;                       /* 0x5980028000070207 */
+        /*0090*/               @P0 BRA 0x50;        }     
+```
+Exactly identical to optimized version?  But 20 times slower:
+```
+k1_opt_128 9.421348571777344 0.012652292742180382
+k1_noprag4_noopt_128 46.595096588134766 0.002558244727120153
+k1_noprag4b_noopt_128 48.75659942626953 0.002444831295843521
+```
 
 ### inlining?
 

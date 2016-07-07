@@ -135,10 +135,29 @@ code_template_nopragma = r"""
             }
         """
 
+code_template_nopragma2 = r"""
+            kernel void {{name}} (global float *data, global float *out) {
+                float a = data[0];
+                float b = data[1];
+                float c = data[2];
+                for(int i = - ({{its}} / {{unroll}}); i != 0; i++) {
+                    {% for j in range(unroll) %}
+                    {% if fma %}
+                    a = fma(a, b, c);
+                    {% else %}
+                    a = a * b + c;
+                    {% endif %}
+                    {% endfor %}
+                }
+                out[0] = a;
+            }
+        """
+
 experiments = [
     #{'name': 'k1_noopt_{block}', 'code': code_template, 'options': '-cl-opt-disable', 'template_args': {'fma': False}},
-    {'name': 'k1_opt_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}}
-    #{'name': 'k1_noprag4_noopt_{block}', 'code': code_template_nopragma, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 4}}
+    {'name': 'k1_opt_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
+    {'name': 'k1_noprag4_noopt_{block}', 'code': code_template_nopragma, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 4}},
+    {'name': 'k1_noprag4b_noopt_{block}', 'code': code_template_nopragma2, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 4}}
     #{'name': 'k1_noprag128_noopt_{block}', 'code': code_template_nopragma, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 128}}
     #{'name': 'k1_noprag128_opt_{block}', 'code': code_template_nopragma, 'options': '', 'template_args': {'fma': False, 'unroll': 128}}
     #{'name': 'k1_fma_noopt_{block}', 'code': code_template, 'options': '-cl-opt-disable', 'template_args': {'fma': True}},
