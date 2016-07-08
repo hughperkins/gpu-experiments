@@ -156,7 +156,7 @@ for experiment in experiments:
             print(e)
             break
 
-        flops = its * block / (t/1000)
+        flops = its * block / (t/1000) * 2
         times.append({'name': name, 'time': t, 'flops': flops})
 
 
