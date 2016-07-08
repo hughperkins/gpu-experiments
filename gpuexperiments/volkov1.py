@@ -75,7 +75,7 @@ def dumpSass(kernelName):
     print(sass)
     return sass
 
-def buildKernel(name, source, options='-cl-opt-disable'):
+def buildKernel(name, source, options=''):
     # options = '-cl-opt-disable'
     # options = ''
     return cl.Program(ctx, source).build(options=options).__getattr__(name) 
@@ -135,18 +135,14 @@ code_template_nopragma = r"""
         """
 
 experiments = [
-    {'name': 'k1_noopt_{block}', 'code': code_template, 'options': '-cl-opt-disable', 'template_args': {'fma': False}},
-    {'name': 'k1_opt_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
-    {'name': 'k1_noprag_noopt_{block}', 'code': code_template_nopragma, 'options': '-cl-opt-disable', 'template_args': {'fma': False, 'unroll': 128}},
-    {'name': 'k1_noprag_opt_{block}', 'code': code_template_nopragma, 'options': '', 'template_args': {'fma': False, 'unroll': 128}}
-    #{'name': 'k1_fma_noopt_{block}', 'code': code_template, 'options': '-cl-opt-disable', 'template_args': {'fma': True}},
-    #{'name': 'k1_fma_opt_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True}}
+    {'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
+    {'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True}}
 ]
 
 its = (1000000//256) * 256
 for experiment in experiments:
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
-    for block in [128]: # range(128,1024+128,128):
+    for block in range(128,1024+128,128):
     #    source = code_template
         name = experiment['name'].format(block=block)
         clearComputeCache()
@@ -160,7 +156,7 @@ for experiment in experiments:
             print(e)
             break
 
-        flops = its * block / t
+        flops = its * block / (t/1000)
         times.append({'name': name, 'time': t, 'flops': flops})
 
 

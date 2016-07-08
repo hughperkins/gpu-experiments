@@ -45,12 +45,12 @@ other way, that variable entirely vanishes  (kernels 1 to 8 or so)
 [gpuexperiments/optimization2.py](gpuexperiments/optimization2.py)
 
 ```
-k1_noopt_128 140.65217971801758 0.0008474924483589801
-k1_opt_128 9.615182876586914 0.01239723276054452
-k1_noprag_noopt_128 16.440153121948242 0.007250641722862736
-k1_noprag_opt_128 6.257295608520508 0.019050028576871787
-k1_fma_noopt_128 483.37507247924805 0.0002466028286168346
-k1_fma_opt_128 9.495258331298828 0.012553809069452117
+k1_noopt_128 140.65217971801758 0.8474924483589801
+k1_opt_128 9.615182876586914 12.39723276054452
+k1_noprag_noopt_128 16.440153121948242 7.250641722862736
+k1_noprag_opt_128 6.257295608520508 19.050028576871787
+k1_fma_noopt_128 483.37507247924805 0.2466028286168346
+k1_fma_opt_128 9.495258331298828 12.553809069452117
 ```
 - looks like optimizatoin makes a huge difference. Why?
 - unroll is part of the story: `#pragma unroll` seems to do nothing, when optimization is turned off
@@ -95,9 +95,9 @@ Basically the same?  Just one has `c[0x2][0x0]` and one has `RZ`.  Could be the 
 ```
 Exactly identical to optimized version?  But 5 times slower:
 ```
-k1_opt_128 9.421348571777344 0.012652292742180382
-k1_noprag4_noopt_128 46.595096588134766 0.002558244727120153
-k1_noprag4b_noopt_128 48.75659942626953 0.002444831295843521
+k1_opt_128 9.421348571777344 12.652292742180382
+k1_noprag4_noopt_128 46.595096588134766 2.558244727120153
+k1_noprag4b_noopt_128 48.75659942626953 2.444831295843521
 ```
 
 ### inlining?
@@ -307,19 +307,46 @@ Reference: http://sbel.wisc.edu/Courses/ME964/Literature/talkVolkov10-GTC.pdf
 
 These experiments are carried out on 940M, using opencl, except where otherwise stated.
 
+[gpuexperiments/volkov1.py](gpuexperiments/volkov1.py)
 
+```
+k1_nofma_128 9.495258331298828 12.553809069452116
+k1_nofma_256 9.752750396728516 24.44472693492397
+k1_nofma_384 11.963844299316406 29.89047429254683
+k1_nofma_512 12.195110321044922 39.09818181818182
+k1_nofma_640 13.562679290771484 43.94473156839996
+k1_nofma_768 15.676736831665039 45.62237464450291
+k1_nofma_896 18.646955490112305 44.74787433992661
+k1_nofma_1024 21.175622940063477 45.033540876183615
+k1_fma_128 9.488821029663086 12.56232568657504
+k1_fma_256 10.361433029174805 23.00872086334246
+k1_fma_384 11.456012725830078 31.21548387096774
+k1_fma_512 11.046409606933594 43.163947163947164
+k1_fma_640 14.116287231445312 42.22132144304824
+k1_fma_768 15.717744827270508 45.50334470989761
+k1_fma_896 17.66180992126465 47.24383428502004
+k1_fma_1024 21.21901512145996 44.94144878032338
+```
+
+In theory we should get 823.3GFLOPS / 3, I think.  Seems like there is something wrong with my calculations somewhere?
 
 ## Theoretical limits
 
 940M, GM108M (rev a2):
 - memory bandwidth: 14.40GB/s
 - flops: 823.3GFLOPS (790.3 per wikipedia?)
+- compute units (==SMMs): 3
 
 Titan X:
 - memory bandwidth: 336GB/s
-- flops: 6166 GFLOPS
+- flops: 6144 GFLOPS
+- compute units (==SMMs): 24
+- L1 cache: 48KB
+- shared memory: 96KB
+- CUDA cores: 3072
 
 References:
 - https://en.wikipedia.org/wiki/GeForce_900_series
 - https://www.techpowerup.com/gpudb/2643/geforce-940m
+- http://www.tomshardware.com/reviews/nvidia-geforce-gtx-titan-x-gm200-maxwell,4091.html
 
