@@ -104,7 +104,7 @@ code_template = r"""
                 float a = data[0];
                 float b = data[1];
                 float c = data[2];
-                #pragma unroll 4
+                #pragma unroll 256
                 for(int i = 0; i < {{its}}; i++) {
                     {% if fma %}
                     a = fma(a, b, c);
@@ -139,7 +139,7 @@ experiments = [
     {'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True}}
 ]
 
-its = (1000000//256) * 256
+its = (4000000//256) * 256
 for experiment in experiments:
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
     for block in range(128,1024+128,128):
