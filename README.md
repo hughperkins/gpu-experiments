@@ -45,6 +45,7 @@ other way, that variable entirely vanishes  (kernels 1 to 8 or so)
 [gpuexperiments/optimization2.py](gpuexperiments/optimization2.py)
 
 ```
+kernel time(ms) GFLOPS
 k1_noopt_128 140.65217971801758 0.8474924483589801
 k1_opt_128 9.615182876586914 12.39723276054452
 k1_noprag_noopt_128 16.440153121948242 7.250641722862736
@@ -95,6 +96,7 @@ Basically the same?  Just one has `c[0x2][0x0]` and one has `RZ`.  Could be the 
 ```
 Exactly identical to optimized version?  But 5 times slower:
 ```
+kernel time(ms) GFLOPS
 k1_opt_128 9.421348571777344 12.652292742180382
 k1_noprag4_noopt_128 46.595096588134766 2.558244727120153
 k1_noprag4b_noopt_128 48.75659942626953 2.444831295843521
@@ -310,6 +312,7 @@ These experiments are carried out on 940M, using opencl, except where otherwise 
 [gpuexperiments/volkov1.py](gpuexperiments/volkov1.py)
 
 ```
+kernel time(ms) GFLOPS
 k1_nofma_128 9.495258331298828 12.553809069452116
 k1_nofma_256 9.752750396728516 24.44472693492397
 k1_nofma_384 11.963844299316406 29.89047429254683

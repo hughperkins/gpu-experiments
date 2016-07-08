@@ -186,6 +186,7 @@ for experiment in experiments:
         times.append({'name': name, 'time': t, 'flops': flops})
 
 
+print('kernel time(ms) GFLOPS')
 for time_info in times:
     print('%s %s %s' % (time_info['name'], time_info['time'], time_info.get('flops', '') / 1024 / 1024 / 1024))
 
