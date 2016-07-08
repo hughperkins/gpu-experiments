@@ -162,5 +162,5 @@ for experiment in experiments:
 
 print('kernel time(ms) GFLOPS')
 for time_info in times:
-    print('%s %s %s' % (time_info['name'], time_info['time'], time_info.get('flops', '') / 1024 / 1024 / 1024))
+    print('%s %s %s' % (time_info['name'], time_info['time'], time_info.get('flops', '') / 1000 / 1000 / 1000))
 
