@@ -235,7 +235,7 @@ k1_g1024_b32_s36       	86.2	30
 k1_g1024_b32_s40       	86.5	29
 k1_g1024_b32_s44       	86.4	30
 ```
-For the experiments with `grid==1024`, it looks like we reach minimum occupancy with shared memory usage set anywhere from 32 to 44KiB.  This seems reasonable since 940M has maximum shared memory per multiprocessor of 64KiB.  For this minimum occupancy, the flops is ~30GFLOPS, about 16 times less than peak.  So, it looks like at maximum occupancy, in this geometry, there are 16 blocks per multiprocessor.
+For the experiments with `grid==1024`, it looks like we reach minimum occupancy with shared memory usage set anywhere from 32 to 44KiB.  This seems reasonable since 940M has maximum shared memory per multiprocessor of 64KiB (from the CUDA occupancy calculator).  For this minimum occupancy, the flops is ~30GFLOPS, about 16 times less than peak.  So, it looks like at maximum occupancy, in this geometry, there are 16 blocks per multiprocessor?
 
 Can we get more flops with larger block sizes?
 
@@ -619,4 +619,22 @@ References:
 - https://en.wikipedia.org/wiki/GeForce_900_series
 - https://www.techpowerup.com/gpudb/2643/geforce-940m
 - http://www.tomshardware.com/reviews/nvidia-geforce-gtx-titan-x-gm200-maxwell,4091.html
+
+Physical limits for SM5.0, corresponding to 940M, from http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls :
+```
+Threads per Warp	32
+Max Warps per Multiprocessor	64
+Max Thread Blocks per Multiprocessor	32
+Max Threads per Multiprocessor	2048
+Maximum Thread Block Size	1024
+Registers per Multiprocessor	65536
+Max Registers per Thread Block	65536
+Max Registers per Thread	255
+Shared Memory per Multiprocessor (bytes)	65536
+Max Shared Memory per Block	49152
+Register allocation unit size	256
+Register allocation granularity	warp
+Shared Memory allocation unit size	256
+Warp allocation granularity	4
+```
 
