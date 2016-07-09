@@ -331,7 +331,7 @@ k1_fma_896 44.046878814697266 162.73570779340284
 k1_fma_1024 49.759864807128906 164.63067236521837
 ```
 
-In theory we should get 823.3GFLOPS / 3, I think.  Seems like there is something wrong with my calculations somewhere? (update: getting closer... up to ~500 / 3 now, still a gap of ~300 / 3 though)
+In theory we should get 752GFLOPS / 3 = 251 GLOPS, I think.  Seems like there is something wrong with my calculations somewhere?
 
 Is it because of OpenCL?  Try with cuda, [gpuexperiments/volkov1_cuda.py](gpuexperiments/volkov1_cuda.py).  No change:
 ```
@@ -376,9 +376,7 @@ k1_fma_896 25.182008743286133 284.64766544531864
 k1_fma_1024 28.693199157714844 285.50319380463327
 ```
 
-Theoretical for titan x should be `6144/24 = 256 GFLOPS`, so this looks fairly ok...  a little high perhaps???
-
-Comparing the clock speed at [clinfo_titanx.md](clinfo_titanx.md) with the clock speed at http://www.tomshardware.com/reviews/nvidia-geforce-gtx-titan-x-gm200-maxwell,4091.html , it looks like the titan x we are using (from http://nimbix.net) runs at 1076GHz, compared to 1000GHz in the toms hardware reviews.  If we multiply the theoretical flops by `1076/1000`, we get `275`, which is still less than above, but comparable.
+Theoretical for titan x should be `6610/24 = 275 GFLOPS`, so this looks fairly ok...  a little high perhaps???
 
 Titan X, cuda:
 ```
@@ -409,13 +407,17 @@ Interestingly, a single compute unit on the Titan X is not even twice as fast as
 
 940M, GM108M (rev a2):
 - memory bandwidth: 14.40GB/s
-- flops: 823.3GFLOPS (790.3 per wikipedia?)
-- compute units (==SMMs): 3
+- flops: 752 (`980MHz * 384 cuda-cores * 2 ops-per-fma / 1000`)
+- compute units (==SMMs): 3  (from clinfo `max compute units`)
+- clock frequency: 980MHz (from clinfo `max clock frequency`)
+- CUDA cores: 384 (from https://en.wikipedia.org/wiki/GeForce_900_series core config 'shader processors')
 
 Titan X:
 - memory bandwidth: 336GB/s
-- flops: 6144 GFLOPS
-- compute units (==SMMs): 24
+- flops: 6610 GFLOPS (`128 cuda-cores * 24 compute-units *2 ops-per-fma *1076MHz *1000*1000 mega /1000/1000/1000 giga`)
+- clock: 1076MHz (from clinfo `max clock frequency`, on nimbix ngd3 instance)
+- compute units (==SMMs): 24  (from clinfo `max compute units`)
+- cuda cores per compute unit: 128
 - L1 cache: 48KB
 - shared memory: 96KB
 - CUDA cores: 3072
