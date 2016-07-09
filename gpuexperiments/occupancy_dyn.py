@@ -85,7 +85,8 @@ for experiment in experiments:
             occupancy = 32
         else:
             occupancy = 64 // shared
-        its = 400000000 // grid * 32 // block
+        its = 100000000 // grid * 32 // block
+        its *= compute_units
         if grid == 1:  # modify its, since it will only run on one sm
             its = its // compute_units
         its = its * occupancy // 32
@@ -129,7 +130,7 @@ for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
     block = 32
     grid = 1024
     ilp = 1
-    its = 400000000 // grid * 32 // block
+    its = 100000000 // grid * 32 // block * compute_units
     its = (its // 256 // ilp) * 256 * ilp
     its = its * blocks_per_sm // full_occupancy_bsm
     name = 'kernel_bsm{bsm}'.format(bsm=blocks_per_sm)
