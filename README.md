@@ -559,6 +559,11 @@ k1_fma_ilp6_384 12.089967727661133 254.0787089920757
 ```
 Peak at 128.  Not quite the peak, but close.
 
+## Hardware used
+
+- 940M: on a Thinkpad T450s laptop
+- Titan X: http://nimbix.net
+
 ## Theoretical limits
 
 940M, GM108M (rev a2):
