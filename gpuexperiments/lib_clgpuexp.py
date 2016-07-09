@@ -10,6 +10,7 @@ from gpuexperiments.timecheck import inittime, timecheck
 
 ctx = None
 q = None
+device = None
 mf = cl.mem_flags
 
 d = None
@@ -19,14 +20,15 @@ out = None
 out_cl = None
 
 def initClGpu(gpu_idx=0):
-    global ctx, q, d, d_cl, out, out_cl
+    global ctx, q, device, d, d_cl, out, out_cl
 
     platforms = cl.get_platforms()
     i = 0
     for platform in platforms:
        gpu_devices = platform.get_devices(device_type=cl.device_type.GPU)
        if gpu_idx < i + len(gpu_devices):
-           ctx = cl.Context(devices=[gpu_devices[gpu_idx-i]])
+           device = gpu_devices[gpu_idx-i]
+           ctx = cl.Context(devices=[device])
            break
        i += len(gpu_devices)
 

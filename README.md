@@ -185,6 +185,155 @@ For other operations, we see:
 - int mul half as fast as float mul
 - int div slllooowwww
 
+### Occupancy
+
+[gpuexperiments/occupancy2.py](gpuexperiments/occupancy2.py)
+
+On 940M:
+
+For grid==1:
+```
+name			tot ms	gflops
+k1_g1_b32_s0           	81.5	10
+k1_g1_b32_s4           	81.7	10
+k1_g1_b32_s8           	81.7	10
+k1_g1_b32_s12          	81.7	10
+k1_g1_b32_s16          	81.4	10
+k1_g1_b32_s20          	81.7	10
+k1_g1_b32_s24          	81.7	10
+k1_g1_b32_s28          	81.7	10
+k1_g1_b32_s32          	81.7	10
+k1_g1_b32_s36          	81.7	10
+k1_g1_b32_s40          	81.7	10
+k1_g1_b32_s44          	81.7	10
+k1_g1_b1024_s4         	5.2	165
+k1_g1_b1024_s8         	6.4	134
+k1_g1_b1024_s12        	5.5	156
+k1_g1_b1024_s16        	6.1	139
+k1_g1_b1024_s20        	5.2	164
+k1_g1_b1024_s24        	5.2	163
+k1_g1_b1024_s28        	6.4	134
+k1_g1_b1024_s32        	5.2	164
+k1_g1_b1024_s36        	6.0	143
+k1_g1_b1024_s40        	6.4	133
+k1_g1_b1024_s44        	5.2	165
+```
+When `grid==1`, we can see that changing the shared memory doesnt change the flops, regardless of blocksize.  This makes sense, since the entire block will be assigned to a single SM, although the individual warps will context switch in and out.  With only a single block, the total amount of shared memory on that SM will exactly equal the allocation of that one single block.
+
+940M, with grid 1024, block == 32:
+```
+k1_g1024_b32_s0        	5.2	489
+k1_g1024_b32_s4        	6.7	380
+k1_g1024_b32_s8        	13.2	194
+k1_g1024_b32_s12       	19.1	133
+k1_g1024_b32_s16       	32.0	80
+k1_g1024_b32_s20       	31.1	82
+k1_g1024_b32_s24       	44.9	57
+k1_g1024_b32_s28       	44.5	57
+k1_g1024_b32_s32       	86.4	30
+k1_g1024_b32_s36       	86.2	30
+k1_g1024_b32_s40       	86.5	29
+k1_g1024_b32_s44       	86.4	30
+```
+For the experiments with `grid==1024`, it looks like we reach minimum occupancy with shared memory usage set anywhere from 32 to 44KiB.  This seems reasonable since 940M has maximum shared memory of 48KiB.  For this minimum occupancy, the flops is ~30GFLOPS, about 16 times less than peak.  So, it looks like at maximum occupancy, in this geometry, there are 16 blocks per multiprocessor.
+
+Can we get more flops with larger block sizes?
+
+```
+k1_g1024_b64_s4        	5.1	495
+k1_g1024_b64_s8        	5.9	431
+k1_g1024_b64_s12       	8.2	310
+k1_g1024_b64_s16       	15.2	168
+k1_g1024_b64_s20       	16.2	157
+k1_g1024_b64_s24       	22.9	111
+k1_g1024_b64_s28       	24.3	105
+k1_g1024_b64_s32       	45.8	56
+k1_g1024_b64_s36       	44.7	57
+k1_g1024_b64_s40       	45.7	56
+k1_g1024_b64_s44       	44.9	57
+k1_g1024_b128_s4       	5.1	496
+k1_g1024_b128_s8       	6.4	402
+k1_g1024_b128_s12      	5.4	471
+k1_g1024_b128_s16      	7.0	364
+k1_g1024_b128_s20      	8.0	317
+k1_g1024_b128_s24      	11.7	217
+k1_g1024_b128_s28      	12.7	200
+k1_g1024_b128_s32      	23.1	110
+k1_g1024_b128_s36      	25.1	102
+k1_g1024_b128_s40      	23.1	111
+k1_g1024_b128_s44      	22.8	112
+```
+Seems not.
+
+What about increasing grid size?
+```
+k1_g4096_b32_s0        	5.1	496
+k1_g4096_b32_s4        	5.5	462
+k1_g4096_b32_s8        	13.2	193
+k1_g4096_b32_s12       	19.1	133
+k1_g4096_b32_s16       	32.2	79
+k1_g4096_b32_s20       	32.2	79
+k1_g4096_b32_s24       	44.9	57
+k1_g4096_b32_s28       	44.6	57
+k1_g4096_b32_s32       	86.6	29
+k1_g4096_b32_s36       	86.5	29
+k1_g4096_b32_s40       	86.7	29
+k1_g4096_b32_s44       	86.6	29
+k1_g4096_b64_s4        	6.6	389
+k1_g4096_b64_s8        	5.9	431
+k1_g4096_b64_s12       	8.4	305
+k1_g4096_b64_s16       	16.2	157
+k1_g4096_b64_s20       	16.2	157
+k1_g4096_b64_s24       	21.9	116
+k1_g4096_b64_s28       	23.3	110
+k1_g4096_b64_s32       	46.1	55
+k1_g4096_b64_s36       	45.3	56
+k1_g4096_b64_s40       	46.2	55
+k1_g4096_b64_s44       	45.3	56
+```
+No effect. Makes sense, since all multiprocessors already have the maximum number of blocks running at any one time.
+
+If there are 16 blocks per multiprocessor, and a 940M has 3 multiprocessors, is grid size 48 sufficient to get peak flops, relative to peak flops at gridsize 1024?
+```
+k1_g16_b32_s0          	16.0	160
+k1_g16_b32_s4          	15.6	164
+k1_g16_b32_s8          	15.6	164
+k1_g16_b32_s12         	32.5	79
+k1_g16_b32_s16         	32.5	79
+k1_g16_b32_s20         	32.4	79
+k1_g16_b32_s24         	48.8	52
+k1_g16_b32_s28         	47.9	53
+k1_g16_b32_s32         	96.2	27
+k1_g16_b32_s36         	96.3	27
+k1_g16_b32_s40         	95.4	27
+k1_g16_b32_s44         	96.3	27
+k1_g32_b32_s0          	7.7	331
+k1_g32_b32_s4          	8.6	299
+k1_g32_b32_s8          	17.7	144
+k1_g32_b32_s12         	26.4	97
+k1_g32_b32_s16         	35.1	73
+k1_g32_b32_s20         	34.0	75
+k1_g32_b32_s24         	47.8	54
+k1_g32_b32_s28         	50.6	51
+k1_g32_b32_s32         	88.6	29
+k1_g32_b32_s36         	88.6	29
+k1_g32_b32_s40         	88.6	29
+k1_g32_b32_s44         	88.6	29
+k1_g48_b32_s0          	5.2	493
+k1_g48_b32_s4          	10.3	248
+k1_g48_b32_s8          	18.5	139
+k1_g48_b32_s12         	23.7	108
+k1_g48_b32_s16         	33.1	77
+k1_g48_b32_s20         	33.1	77
+k1_g48_b32_s24         	45.7	56
+k1_g48_b32_s28         	45.7	56
+k1_g48_b32_s32         	86.2	30
+k1_g48_b32_s36         	86.2	30
+k1_g48_b32_s40         	86.2	30
+k1_g48_b32_s44         	86.2	30
+```
+Yes :-)
+
 ## Reproduce Volkov's results
 
 Reference: http://sbel.wisc.edu/Courses/ME964/Literature/talkVolkov10-GTC.pdf
@@ -453,6 +602,7 @@ Peak at 128.  Not quite the peak, but close.
 - flops: 752 GFLOPS (`980MHz * 384 cuda-cores * 2 ops-per-fma / 1000`)
 - compute units (==SMMs): 3  (from clinfo `max compute units`)
 - clock frequency: 980MHz (from clinfo `max clock frequency`)
+- shared memory: 48KiB  (from clinfo `Local memory size`)
 - CUDA cores: 384 (from https://en.wikipedia.org/wiki/GeForce_900_series core config 'shader processors')
 
 Titan X:
