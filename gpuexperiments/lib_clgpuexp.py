@@ -81,7 +81,7 @@ def getPtx(kernelName):
 def dumpSass(kernelName):
     ptx = getPtx(kernelName)
     # ptx = ptx.split('.version %s' % getComputeCapability())[1].split('A')[0].split('--reserve-null-pointer')[0]
-    ptx = '.target' + ptx.split('.target)[1].split('A')[0].split('--reserve-null-pointer')[0]
+    ptx = '.target' + ptx.split('.target')[1].split('A')[0].split('--reserve-null-pointer')[0]
     ptx = '.version 4.3\n' + ptx
     # print('ptx', ptx)
     # sys.exit(1)
