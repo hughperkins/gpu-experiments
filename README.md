@@ -401,7 +401,7 @@ k1_fma_896 25.19679069519043 284.4806740156884
 k1_fma_1024 28.69701385498047 285.4652418331063
 ```
 
-... as for 940M, identical to OpenCL results.
+... as for 940M, identical to OpenCL results.  At least, for fma.  For non-fma, it matches the fma speed of both OpenCL and CUDA, whereas the OpenCL version is slower, presumably not being optimized automtaiclaly into fma.
 
 ## Theoretical limits
 
