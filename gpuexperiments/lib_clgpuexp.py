@@ -56,16 +56,37 @@ def getPtx(kernelName):
         f.write(r"""#!/bin/bash
         cat $(grep -r %s ~/.nv/ComputeCache | awk '{print $3}')
 """  % kernelName)
-    filepath = subprocess.check_output(['/bin/bash', '/tmp/gpucmd.sh'])
-    filepath_utf8 = ''
-    for byte in filepath:
+    ptxb = subprocess.check_output(['/bin/bash', '/tmp/gpucmd.sh'])
+    ptx_utf8 = ''
+    for byte in ptxb:
         # print(byte)
         if byte >= 10 and byte < 128:
            if chr(byte) in string.printable:
-               filepath_utf8 += chr(byte)
+               ptx_utf8 += chr(byte)
     # print('filepath', filepath)
     #print(kernelName)
-    print(filepath_utf8.split('--opt-level')[0].split('--reserve')[0])
+    ptx = ptx_utf8.split('--opt-level')[0].split('--reserve')[0]
+    # print(ptx)
+    return ptx
+
+def dumpSass(kernelName):
+    ptx = getPtx(kernelName)
+    ptx = ptx.split('.version 5.0')[1].split('A')[0].split('--reserve-null-pointer')[0]
+    ptx = '.version 4.3\n' + ptx
+    print('ptx', ptx)
+    # sys.exit(1)
+    with open('/tmp/~kernel.ptx', 'w') as f:
+        f.write(ptx)
+    print(subprocess.check_output([
+        'ptxas',
+        '--gpu-name', 'sm_50',
+        '--output-file', '/tmp/~kernel.o',
+        '/tmp/~kernel.ptx']).decode('utf-8'))
+    sass = subprocess.check_output([
+        'cuobjdump', '--dump-sass', '/tmp/~kernel.o']).decode('utf-8')
+    print(sass)
+    # sys.exit(1)
+    return sass
 
 def timeKernel(name, kernel, grid_x=1, block_x=32):
     # clearComputeCache()
