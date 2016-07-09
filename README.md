@@ -43,6 +43,15 @@ other way, that variable entirely vanishes  (kernels 1 to 8 or so)
 - get local id takes noticeable time (kernel 23, kernel 25)
 - access pattern for writes to global memory seems to make little difference? (kernels 28 to 32)
 
+### inlining?
+
+Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)
+
+- with optimizations off, then:
+  - no, see kernel 1, 2
+  - #define runs 5 times faster!  (kernel 3)
+- with optimizations on, #define and static inline run in same time (kernel 1,3,4,5)
+
 ### Effect of optimization on performance?
 
 [gpuexperiments/optimization2.py](gpuexperiments/optimization2.py)
@@ -137,14 +146,6 @@ For other operations, we see:
 - float div about 3 times slower
 - int mul half as fast as float mul
 - int div slllooowwww
-
-### inlining?
-
-Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)
-
-- no, see kernel 1, 2
-- #define runs 5 times faster!  (kernel 3)
-- with optimizatoins on, #define and static inline run in same time (kernel 1,3,4,5)
 
 ## Reproduce Volkov's results
 
