@@ -407,7 +407,7 @@ Interestingly, a single compute unit on the Titan X is not even twice as fast as
 
 940M, GM108M (rev a2):
 - memory bandwidth: 14.40GB/s
-- flops: 752 (`980MHz * 384 cuda-cores * 2 ops-per-fma / 1000`)
+- flops: 752 GFLOPS (`980MHz * 384 cuda-cores * 2 ops-per-fma / 1000`)
 - compute units (==SMMs): 3  (from clinfo `max compute units`)
 - clock frequency: 980MHz (from clinfo `max clock frequency`)
 - CUDA cores: 384 (from https://en.wikipedia.org/wiki/GeForce_900_series core config 'shader processors')
