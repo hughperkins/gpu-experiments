@@ -403,6 +403,8 @@ k1_fma_1024 28.69701385498047 285.4652418331063
 
 ... as for 940M, identical to OpenCL results.  At least, for fma.  For non-fma, it matches the fma speed of both OpenCL and CUDA, whereas the OpenCL version is slower, presumably not being optimized automtaiclaly into fma.
 
+Interestingly, a single compute unit on the Titan X is not even twice as fast as one on the 940M.  Admittedly there are 8 times as many of them :-P
+
 ## Theoretical limits
 
 940M, GM108M (rev a2):
