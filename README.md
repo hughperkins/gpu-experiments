@@ -334,6 +334,31 @@ k1_g48_b32_s44         	86.2	30
 ```
 Yes :-)
 
+*Dynamically allocated shared memory*
+
+In Volkov, slide 30, he suggests that we can allocated shared memory dynamically, to control occupancy.  In the experiments just above, the shared memory was allocated statically, at compile time, and I found that if I didnt use the shared memory, it was optimized away.  What about for dynamically allocated?
+
+[gpuexperiments/occupancy_dyn.py](gpuexperiments/occupancy_dyn.py)
+
+On 940M:
+```
+name			tot ms	gflops
+k1_g1024_b32_s0        	5.2	486
+k1_g1024_b32_s4        	5.8	443
+k1_g1024_b32_s8        	14.2	179
+k1_g1024_b32_s12       	18.3	140
+k1_g1024_b32_s16       	32.1	79
+k1_g1024_b32_s20       	32.0	80
+k1_g1024_b32_s24       	45.7	56
+k1_g1024_b32_s28       	45.4	56
+k1_g1024_b32_s32       	92.2	28
+k1_g1024_b32_s36       	93.4	27
+k1_g1024_b32_s40       	92.3	28
+k1_g1024_b32_s44       	92.4	28
+```
+
+Clearly, dynamically allocated shared memory, on NVIDIA, will always be assigned to the blocks, and therefore control the occupancy.  No need to worry about it being optimized away.  Also, it's trivial here to get full occupancy, by just creating a shared memory of 0 bytes.
+
 ## Reproduce Volkov's results
 
 Reference: http://sbel.wisc.edu/Courses/ME964/Literature/talkVolkov10-GTC.pdf
@@ -589,6 +614,10 @@ k1_fma_ilp6_352 12.088775634765625 232.92845041329883
 k1_fma_ilp6_384 12.089967727661133 254.0787089920757
 ```
 Peak at 128.  Not quite the peak, but close.
+
+### global mem copy, ilp==1
+
+
 
 ## Hardware used
 

@@ -90,13 +90,13 @@ def dumpSass(kernelName):
     # sys.exit(1)
     return sass
 
-def timeKernel(name, kernel, grid_x=1, block_x=32):
+def timeKernel(name, kernel, add_args=[], grid_x=1, block_x=32):
     # clearComputeCache()
     grid = (grid_x,1,1)
     block = (block_x,1,1)
     q.finish()
     inittime()
-    call_cl_kernel(kernel, q, grid, block, d_cl, out_cl)
+    call_cl_kernel(kernel, q, grid, block, d_cl, out_cl, *add_args)
     q.finish()
     return timecheck(name)
     # print(getPtx('mykernel'))
