@@ -119,7 +119,7 @@ for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
     shared_bytes = (shared_bytes // 256) * 256
     print('occupancy', occupancy)
     print('shared_bytes', shared_bytes)
-    if shared_bytes > maxShared * 1024:
+    if shared_bytes >= maxShared * 1024:
         print('exceeds maximum block local memory => skipping')
         continue
     actual_blocks_per_sm = shared_memory_per_sm // shared_bytes
