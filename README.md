@@ -235,7 +235,7 @@ k1_g1024_b32_s36       	86.2	30
 k1_g1024_b32_s40       	86.5	29
 k1_g1024_b32_s44       	86.4	30
 ```
-For the experiments with `grid==1024`, it looks like we reach minimum occupancy with shared memory usage set anywhere from 32 to 44KiB.  This seems reasonable since 940M has maximum shared memory of 48KiB.  For this minimum occupancy, the flops is ~30GFLOPS, about 16 times less than peak.  So, it looks like at maximum occupancy, in this geometry, there are 16 blocks per multiprocessor.
+For the experiments with `grid==1024`, it looks like we reach minimum occupancy with shared memory usage set anywhere from 32 to 44KiB.  This seems reasonable since 940M has maximum shared memory per multiprocessor of 64KiB.  For this minimum occupancy, the flops is ~30GFLOPS, about 16 times less than peak.  So, it looks like at maximum occupancy, in this geometry, there are 16 blocks per multiprocessor.
 
 Can we get more flops with larger block sizes?
 
