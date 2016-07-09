@@ -32,7 +32,7 @@ def initClGpu(gpu_idx=0):
            break
        i += len(gpu_devices)
 
-    print('context', ctx)
+    # print('context', ctx)
     q = cl.CommandQueue(ctx)
     mf = cl.mem_flags
 
@@ -49,7 +49,7 @@ def clearComputeCache():
     for subdir in os.listdir(cache_dir):
         if subdir == 'index':
             continue
-        print('clean', subdir)
+        # print('clean', subdir)
         subprocess.call(['rm', '-Rf', join(cache_dir, subdir)])
 #    subprocess.call(['rm', '-Rf', join(os.environ['HOME'], '.nv/ComputeCache')])
 
@@ -75,7 +75,7 @@ def dumpSass(kernelName):
     ptx = getPtx(kernelName)
     ptx = ptx.split('.version 5.0')[1].split('A')[0].split('--reserve-null-pointer')[0]
     ptx = '.version 4.3\n' + ptx
-    print('ptx', ptx)
+    # print('ptx', ptx)
     # sys.exit(1)
     with open('/tmp/~kernel.ptx', 'w') as f:
         f.write(ptx)
