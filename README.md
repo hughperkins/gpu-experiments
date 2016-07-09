@@ -105,6 +105,39 @@ k1_noprag4_noopt_128 46.5950965881348 5.49378871907275
 k1_noprag4b_noopt_128 48.7565994262695 5.25023522994261
 ```
 
+### maths
+
+[gpuexperiments/maths2.py](gpuexperiments/maths2.py)
+
+Comparison of maths operators.  Results on 940M:
+```
+name		tot ms	op ns	gflops
+float_add 	60.9	6.09	5.26
+float_mul 	61.3	6.13	5.22
+float_sub 	61.1	6.11	5.24
+float_div 	185.5	18.55	1.72
+int_mul   	133.1	13.31	2.40
+int_div   	1485.0	148.50	0.22
+int_add   	0.1	0.01	4386.14name		tot ms	op ns	gflops
+float_add 	60.9	6.09	5.26
+float_mul 	61.3	6.13	5.22
+float_sub 	61.1	6.11	5.24
+float_div 	185.5	18.55	1.72
+int_mul   	133.1	13.31	2.40
+int_div   	1485.0	148.50	0.22
+int_add   	0.1	0.01	4386.14
+int_sub   	0.1	0.01	4104.47
+
+int_sub   	0.1	0.01	4104.47
+```
+Clearly `int` add and sub are being optimized away here.  Not sure how to work around that?  Section 'effect of optimization on performance?' shows that just turning off optimizations gives unrepresentative results, so not really an option.
+
+For other operations, we see:
+- float add/sub/mul all same speed
+- float div about 3 times slower
+- int mul half as fast as float mul
+- int div slllooowwww
+
 ### inlining?
 
 Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)

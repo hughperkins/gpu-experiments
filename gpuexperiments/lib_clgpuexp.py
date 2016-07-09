@@ -11,11 +11,15 @@ from gpuexperiments.timecheck import inittime, timecheck
 ctx = None
 q = None
 mf = cl.mem_flags
+
 d = None
 d_cl = None
 
+out = None
+out_cl = None
+
 def initClGpu(gpu_idx=0):
-    global ctx, q, d, d_cl
+    global ctx, q, d, d_cl, out, out_cl
 
     platforms = cl.get_platforms()
     i = 0
@@ -32,6 +36,9 @@ def initClGpu(gpu_idx=0):
 
     d = np.zeros((1024*1024 * 32 * 2,), dtype=np.float32)
     d_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=d)
+
+    out = np.zeros((1024,), dtype=np.float32)
+    out_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=out)
 
     return ctx, q, mf
 
@@ -58,15 +65,15 @@ def getPtx(kernelName):
                filepath_utf8 += chr(byte)
     # print('filepath', filepath)
     #print(kernelName)
-    print(filepath_utf8.split('--opt-level')[0])
+    print(filepath_utf8.split('--opt-level')[0].split('--reserve')[0])
 
-def timeKernel(name, kernel):
+def timeKernel(name, kernel, grid_x=1, block_x=32):
     # clearComputeCache()
-    grid = (1024*1024,1,1)
-    block = (32,1,1)
+    grid = (grid_x,1,1)
+    block = (block_x,1,1)
     q.finish()
     inittime()
-    call_cl_kernel(kernel, q, grid, block, d_cl)
+    call_cl_kernel(kernel, q, grid, block, d_cl, out_cl)
     q.finish()
     return timecheck(name)
     # print(getPtx('mykernel'))
