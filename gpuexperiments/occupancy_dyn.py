@@ -134,7 +134,7 @@ for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
     add_args = []
     if shared_bytes > 0:
         add_args.append(cl.LocalMemory(shared_bytes))
-    source = template.render(name=name, its=its, type='float', **experiment['template_args'], shared=shared_bytes > 0)
+    source = template.render(name=name, its=its, type='float', shared=shared_bytes > 0, **experiment['template_args'])
     try:
         kernel = buildKernel(name, source)
         for it in range(3):
