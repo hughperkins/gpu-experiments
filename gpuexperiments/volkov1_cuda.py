@@ -50,21 +50,21 @@ def timeKernel(name, kernel, grid_x=1, block_x=32):
 times = []
 
 code_template = r"""
-            __global__ void {{name}} (float *data, float *out) {
-                float a = data[0];
-                float b = data[1];
-                float c = data[2];
-                #pragma unroll 256
-                for(int i = 0; i < {{its}}; i++) {
-                    {% if fma %}
-                    a = fma(a, b, c);
-                    {% else %}
-                    a = a * b + c;
-                    {% endif %}
-                }
-                out[0] = a;
-            }
-        """
+  __global__ void {{name}} (float *data, float *out) {
+      float a = data[0];
+      float b = data[1];
+      float c = data[2];
+      #pragma unroll 256
+      for(int i = 0; i < {{its}}; i++) {
+          {% if fma %}
+          a = fma(a, b, c);
+          {% else %}
+          a = a * b + c;
+          {% endif %}
+      }
+      out[0] = a;
+  }
+"""
 
 code_template_nopragma = r"""
             __global__ void {{name}} (float *data, float *out) {
