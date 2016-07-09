@@ -83,6 +83,15 @@ other way, that variable entirely vanishes  (kernels 1 to 8 or so)
 
 Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)
 
+```
+name		tot ms
+kernel01	38.1
+kernel02	40.5
+kernel03	8.3
+kernel04	11.1
+kernel05	12.2
+```
+
 - with optimizations off, then:
   - no, see kernel 1, 2
   - #define runs 5 times faster!  (kernel 3)
