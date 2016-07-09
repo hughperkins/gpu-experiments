@@ -309,6 +309,8 @@ Reference: http://sbel.wisc.edu/Courses/ME964/Literature/talkVolkov10-GTC.pdf
 
 These experiments are carried out on 940M, using opencl, except where otherwise stated.
 
+### fma, ilp=1
+
 [gpuexperiments/volkov1.py](gpuexperiments/volkov1.py)
 
 ```
@@ -402,6 +404,39 @@ k1_fma_1024 28.69701385498047 285.4652418331063
 ... as for 940M, identical to OpenCL results.  At least, for fma.  For non-fma, it matches the fma speed of both OpenCL and CUDA, whereas the OpenCL version is slower, presumably not being optimized automtaiclaly into fma.
 
 Interestingly, a single compute unit on the Titan X is not even twice as fast as one on the 940M.  Admittedly there are 8 times as many of them :-P
+
+### fma, ilp=2
+
+940M:
+```
+k1_fma_ilp2_128 12.473583221435547 82.09349164723422
+k1_fma_ilp2_256 12.477636337280273 164.1336503678227
+k1_fma_ilp2_384 14.468669891357422 212.32082997726
+k1_fma_ilp2_512 17.87877082824707 229.09852357012363
+k1_fma_ilp2_640 20.66779136657715 247.72845386274759
+k1_fma_ilp2_768 24.718523025512695 248.55854023553923
+k1_fma_ilp2_896 30.41863441467285 235.6450293686562
+k1_fma_ilp2_1024 33.705711364746094 243.04486297145118
+```
+
+Suddenly, we our hitting theoretical flops, interestingly.  We get these at threads=640.  Compared to peak at ilp=1 was threads=768 (but we never really hit the peak, for some reason).
+
+## fma, ilp=3
+
+940M:
+```
+kernel time(ms) GFLOPS
+k1_fma_ilp3_128 9.108543395996094 112.42192691864727
+k1_fma_ilp3_256 9.561538696289062 214.19146698583683
+k1_fma_ilp3_384 13.108015060424805 234.3604264901144
+k1_fma_ilp3_512 17.731428146362305 231.00226141910153
+k1_fma_ilp3_640 20.359277725219727 251.48239879147002
+k1_fma_ilp3_768 24.341106414794922 252.4125195995847
+k1_fma_ilp3_896 28.972864151000977 247.40391431933574
+k1_fma_ilp3_1024 33.41960906982422 245.1255483834147
+```
+
+We hit the peak at threads=640, as for ilp=2.
 
 ## Theoretical limits
 

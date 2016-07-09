@@ -101,17 +101,25 @@ times = []
 
 code_template = r"""
             kernel void {{name}} (global float *data, global float *out) {
-                float a = data[0];
-                float b = data[1];
-                float c = data[2];
+                {% for j in range(ilp) %}
+                  float a{{j}} = data[2 + {{j}}];
+                {% endfor %}
+                float b = data[0];
+                float c = data[1];
                 #pragma unroll 256
-                for(int i = 0; i < {{its}}; i++) {
-                    {% if fma %}
-                    a = fma(a, b, c);
-                    {% else %}
-                    a = a * b + c;
-                    {% endif %}
+                for(int i = 0; i < {{its / ilp}}; i++) {
+                    {% for j in range(ilp) %}
+                      {% if fma %}
+                        a{{j}} = fma(a{{j}}, b, c);
+                      {% else %}
+                        a{{j}} = a{{j}} * b + c;
+                      {% endif %}
+                    {% endfor %}
                 }
+                float a = 0.0f;
+                {% for j in range(ilp) %}
+                  a += a{{j}};
+                {% endfor %}
                 out[0] = a;
             }
         """
@@ -135,14 +143,16 @@ code_template_nopragma = r"""
         """
 
 experiments = [
-    {'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
-    {'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True}}
+    #{'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False, 'ilp': 1}},
+    #{'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 1}},
+    #{'name': 'k1_fma_ilp2_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 2}},
+    {'name': 'k1_fma_ilp3_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 3}}
     #{'name': 'k1_nofma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': False}},
     #{'name': 'k1_fma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': True}}
 ]
 
-its = (4000000//256) * 256
 for experiment in experiments:
+    its = (4000000//256//experiment['template_args']['ilp']) * 256 * experiment['template_args']['ilp']
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
     for block in range(128,1024+128,128):
     #    source = code_template
