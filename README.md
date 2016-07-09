@@ -109,7 +109,7 @@ k1_noprag4b_noopt_128 48.7565994262695 5.25023522994261
 
 [gpuexperiments/maths2.py](gpuexperiments/maths2.py)
 
-Comparison of maths operators.  Results on 940M:
+Comparison of maths operators.  This is using a single block of 32 threads.  Results on 940M:
 ```
 name		tot ms	op ns	gflops
 float_add 	60.9	6.09	5.26
