@@ -25,6 +25,43 @@ I've moved most stuff out of this section into [old.md](old.md), after discoveri
 
 [gpuexperiments/optimization_shortcutting.py](gpuexperiments/optimization_shortcutting.py)
 
+On 940M:
+```
+name		tot ms
+kernel01	11.2
+kernel02	12.0
+kernel03	14.8
+kernel04	12.5
+kernel05	9.5
+kernel06	9.4
+kernel07	10.1
+kernel08	11.5
+kernel09	34.3
+kernel10	23.0
+kernel11	33.9
+kernel12	32.3
+kernel13	113.1
+kernel14	115.4
+kernel15	113.8
+kernel16	48.4
+kernel17	10.4
+kernel18	13.4
+kernel19	14.8
+kernel20	26.3
+kernel21	28.4
+kernel22	36.0
+kernel23	21.1
+kernel24	25.0
+kernel25	12.0
+kernel26	17.8
+kernel27	32.8
+kernel28	84.4
+kernel29	81.9
+kernel30	84.3
+kernel31	81.9
+kernel32	85.8
+```
+
 Observations:
 - even with optimization off, if you dont save the value of a variable to global memory, or use it in some
 other way, that variable entirely vanishes  (kernels 1 to 8 or so)
