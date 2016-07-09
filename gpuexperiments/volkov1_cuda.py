@@ -5,6 +5,7 @@ import time
 import string
 import random
 import jinja2
+import json
 import numpy as np
 import pycuda.driver as cuda
 import pycuda.autoinit
@@ -82,24 +83,30 @@ code_template_nopragma = r"""
                 out[0] = a;
             }
         """
-
+256
 experiments = [
-    {'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
-    {'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True}}
+    {'name': 'k1_nofma_{block}', 'kernelname': 'k1_nofma', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
+    {'name': 'k1_fma_{block}', 'kernelname': 'k1_fma', 'code': code_template, 'options': '', 'template_args': {'fma': True}}
     #{'name': 'k1_nofma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': False}},
     #{'name': 'k1_fma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': True}}
 ]
 
 its = (4000000//256) * 256
+kernel_by_source = {}
 for experiment in experiments:
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
+    source = template.render(name=experiment['kernelname'], its=its, **experiment['template_args'])
+    build_info = {'source': source, 'options': experiment['options']}
+    build_info_str = json.dumps(build_info)
+    if build_info_str not in kernel_by_source:
+        kernel = buildKernel(source=source, name=experiment['kernelname'], options=experiment['options'])
+        kernel_by_source[build_info_str] = kernel
+    kernel = kernel_by_source[build_info_str]
     for block in range(128,1024+128,128):
     #    source = code_template
         name = experiment['name'].format(block=block)
         # clearComputeCache()
-        source = template.render(name=name, its=its, **experiment['template_args'])
         try:
-            kernel = buildKernel(name, source, options=experiment['options'])
             for it in range(3):
                 t = timeKernel(name, kernel, block_x=block)
             # print(getPtx(name))
