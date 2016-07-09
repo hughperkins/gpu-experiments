@@ -101,13 +101,13 @@ for experiment in experiments:
             kernel = buildKernel(name, source, options=experiment['options'])
             for it in range(3):
                 t = timeKernel(name, kernel, grid_x=grid, block_x=block, add_args=add_args)
-            print(getPtx(name))
         except Exception as e:
             print(e)
             break
 
         flops = its * block / (t/1000) * 2 * grid
         times.append({'name': name, 'time': t, 'flops': flops})
+    print(getPtx(name))
     dumpSass(name)
 
 # try varying occupancy, rather than varying shared memory
