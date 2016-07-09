@@ -87,8 +87,8 @@ code_template_nopragma = r"""
 experiments = [
     {'name': 'k1_nofma_{block}', 'kernelname': 'k1_nofma', 'code': code_template, 'options': '', 'template_args': {'fma': False}},
     {'name': 'k1_fma_{block}', 'kernelname': 'k1_fma', 'code': code_template, 'options': '', 'template_args': {'fma': True}}
-    #{'name': 'k1_nofma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': False}},
-    #{'name': 'k1_fma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': True}}
+    # {'name': 'k1_nofma_fastmath_{block}', 'kernelname': 'k1_nofma_fastmath', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': False}},
+    # {'name': 'k1_fma_fastmath_{block}', 'kernelname': 'k1_fma_fastmath', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': True}}
 ]
 
 its = (4000000//256) * 256
