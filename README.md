@@ -41,7 +41,6 @@ other way, that variable entirely vanishes  (kernels 1 to 8 or so)
 - calls to get_local_id(0) are not cached (26 and 27), and adidtional calls take significant time
 - get_global_id is slower than get_local_id (kernel 21, 23)
 - get local id takes noticeable time (kernel 23, kernel 25)
-- access pattern for writes to global memory seems to make little difference? (kernels 28 to 32)
 
 ### inlining?
 
