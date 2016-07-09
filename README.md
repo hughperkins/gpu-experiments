@@ -113,6 +113,8 @@ k1_noprag4_noopt_128 46.5950965881348 5.49378871907275
 k1_noprag4b_noopt_128 48.7565994262695 5.25023522994261
 ```
 
+Without any way of explaining this discrepancy, it looks like we should do all experiments with optimizations on unfortunately.  This makes it harder to make artificial kernels for timing that dont just get entirely optimized away.
+
 ### maths
 
 [gpuexperiments/maths2.py](gpuexperiments/maths2.py)
