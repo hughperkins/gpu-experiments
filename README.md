@@ -359,6 +359,35 @@ k1_g1024_b32_s44       	92.4	28
 
 Clearly, dynamically allocated shared memory, on NVIDIA, will always be assigned to the blocks, and therefore control the occupancy.  No need to worry about it being optimized away.  Also, it's trivial here to get full occupancy, by just creating a shared memory of 0 bytes.
 
+Titan X:
+```
+name			tot ms	gflops
+k1_g1024_b32_s0        	6.5	3929
+k1_g1024_b32_s4        	2.5	5143
+k1_g1024_b32_s8        	2.4	2627
+k1_g1024_b32_s12       	2.6	1543
+k1_g1024_b32_s16       	2.7	1186
+k1_g1024_b32_s20       	2.5	969
+k1_g1024_b32_s24       	2.2	714
+k1_g1024_b32_s28       	2.2	713
+k1_g1024_b32_s32       	3.3	490
+k1_g1024_b32_s36       	1.6	482
+k1_g1024_b32_s40       	1.6	483
+k1_g1024_b32_s44       	1.6	483
+k1_g1024_b64_s0        	5.1	5013
+k1_g1024_b64_s4        	2.4	5328
+k1_g1024_b64_s8        	1.3	5062
+k1_g1024_b64_s12       	1.3	3036
+k1_g1024_b64_s16       	1.4	2322
+k1_g1024_b64_s20       	1.3	1898
+k1_g1024_b64_s24       	1.3	1238
+k1_g1024_b64_s28       	1.1	1401
+k1_g1024_b64_s32       	1.6	964
+k1_g1024_b64_s36       	0.8	942
+k1_g1024_b64_s40       	0.8	929
+k1_g1024_b64_s44       	0.8	930
+```
+
 ## Reproduce Volkov's results
 
 Reference: http://sbel.wisc.edu/Courses/ME964/Literature/talkVolkov10-GTC.pdf

@@ -117,10 +117,13 @@ full_occupancy_bsm = 32
 for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
     shared_bytes = shared_memory_per_sm // blocks_per_sm
     shared_bytes = (shared_bytes // 256) * 256
-    actual_blocks_per_sm = shared_memory_per_sm // shared_bytes
-    occupancy = actual_blocks_per_sm / full_occupancy_bsm * 100
     print('occupancy', occupancy)
     print('shared_bytes', shared_bytes)
+    if shared_bytes > maxShared * 1024:
+        print('exceeds maximum block local memory => skipping')
+        continue
+    actual_blocks_per_sm = shared_memory_per_sm // shared_bytes
+    occupancy = actual_blocks_per_sm / full_occupancy_bsm * 100
 
     template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
     block = 32
