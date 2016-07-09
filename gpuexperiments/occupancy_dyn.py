@@ -95,7 +95,7 @@ for experiment in experiments:
         add_args = []
         if shared > 0:
             add_args.append(cl.LocalMemory(shared*1024))
-        source = template.render(name=name, its=its, type='float', **experiment['template_args'], shared=shared > 0)
+        source = template.render(name=name, its=its, type='float', shared=shared > 0, **experiment['template_args'])
         # print('source', source)
         try:
             kernel = buildKernel(name, source, options=experiment['options'])
