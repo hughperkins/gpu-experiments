@@ -561,7 +561,7 @@ Peak at 128.  Not quite the peak, but close.
 
 ## Hardware used
 
-- 940M: on a Thinkpad T450s laptop
+- 940M: Thinkpad T450s laptop
 - Titan X: http://nimbix.net
 
 ## Theoretical limits
