@@ -44,6 +44,13 @@ def initClGpu(gpu_idx=0):
 
     return ctx, q, mf
 
+def getComputeCapability():
+    compute_capability = '%s.%s' % (
+        device.get_info(cl.device_info.COMPUTE_CAPABILITY_MAJOR_NV),
+        device.get_info(cl.device_info.COMPUTE_CAPABILITY_MINOR_NV)
+    )
+    return compute_capability
+
 def clearComputeCache():
     cache_dir = join(os.environ['HOME'], '.nv/ComputeCache')
     for subdir in os.listdir(cache_dir):
@@ -73,7 +80,7 @@ def getPtx(kernelName):
 
 def dumpSass(kernelName):
     ptx = getPtx(kernelName)
-    ptx = ptx.split('.version 5.0')[1].split('A')[0].split('--reserve-null-pointer')[0]
+    ptx = ptx.split('.version %s' % getComputeCapability())[1].split('A')[0].split('--reserve-null-pointer')[0]
     ptx = '.version 4.3\n' + ptx
     # print('ptx', ptx)
     # sys.exit(1)
@@ -81,7 +88,7 @@ def dumpSass(kernelName):
         f.write(ptx)
     print(subprocess.check_output([
         'ptxas',
-        '--gpu-name', 'sm_50',
+        '--gpu-name', 'sm_%s' % (getComputeCapability().replace('.', '')),
         '--output-file', '/tmp/~kernel.o',
         '/tmp/~kernel.ptx']).decode('utf-8'))
     sass = subprocess.check_output([
