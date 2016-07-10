@@ -60,7 +60,6 @@ for timeinfo in times:
 
 thismax = 0
 for i, name in enumerate(names):
-# for ilp in sorted(X_list_by_ilp.keys()):
     X = np.array(X_lists[i])
     Y = np.array(Y_lists[i])
     plt.plot(X, Y, label=name)

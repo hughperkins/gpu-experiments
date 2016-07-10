@@ -22,13 +22,13 @@ initClGpu()
 times = []
 
 code_template = r"""
-            kernel void {{name}} (global float *data, global float *out) {
+            kernel void {{kernelname}} (global float *data, global float *out) {
                 {% for j in range(ilp) %}
                   float a{{j}} = data[2 + {{j}}];
                 {% endfor %}
                 float b = data[0];
                 float c = data[1];
-                #pragma unroll 256
+                #pragma unroll {{unroll}}
                 for(int i = 0; i < {{its / ilp}}; i++) {
                     {% for j in range(ilp) %}
                       {% if fma %}
@@ -46,51 +46,41 @@ code_template = r"""
             }
         """
 
-code_template_nopragma = r"""
-            kernel void {{name}} (global float *data, global float *out) {
-                float a = data[0];
-                float b = data[1];
-                float c = data[2];
-                for(int i = 0; i < {{its}}; i+= {{unroll}}) {
-                    {% for j in range(unroll) %}
-                    {% if fma %}
-                    a = fma(a, b, c);
-                    {% else %}
-                    a = a * b + c;
-                    {% endif %}
-                    {% endfor %}
-                }
-                out[0] = a;
-            }
-        """
-
 deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
 deviceNameSimple = deviceName.replace('GeForce', '').strip().replace(' ', '').lower()
 
 experiments = [
     #{'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False, 'ilp': 1}},
-    {'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 1}},
-    {'name': 'k1_fma_ilp2_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 2}},
-    {'name': 'k1_fma_ilp3_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 3}},
-    {'name': 'k1_fma_ilp4_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 4}},
-    {'name': 'k1_fma_ilp6_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 6}},
-    {'name': 'k1_fma_ilp8_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 8}}
+    {'name': 'k1_fma_ilp1_{block}', 'code': code_template, 'fma': True, 'ilp': 1, 'unroll': 64},
+    {'name': 'k1_fma_ilp2_{block}', 'code': code_template, 'fma': True, 'ilp': 2, 'unroll': 64},
+    {'name': 'k1_fma_ilp3_{block}', 'code': code_template, 'fma': True, 'ilp': 3, 'unroll': 64},
+    {'name': 'k1_fma_ilp4_{block}', 'code': code_template, 'fma': True, 'ilp': 4, 'unroll': 64},
+    {'name': 'k1_fma_ilp6_{block}', 'code': code_template, 'fma': True, 'ilp': 6, 'unroll': 64},
+    {'name': 'k1_fma_ilp8_{block}', 'code': code_template, 'fma': True, 'ilp': 8, 'unroll': 64}
     #{'name': 'k1_nofma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': False}},
     #{'name': 'k1_fma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': True}}
 ]
 
 for experiment in experiments:
-    its = (4000000//256//experiment['template_args']['ilp']) * 256 * experiment['template_args']['ilp']
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
     for block in range(128,1024+128,128):
     #    source = code_template
+        its = (8000000//256//experiment['ilp']) * 256 * experiment['ilp']
+        if block <= 384:
+            its *= 2
+        if block <= 128:
+            its *= 2
         name = experiment['name'].format(block=block)
         clearComputeCache()
-        source = template.render(name=name, its=its, **experiment['template_args'])
+        source = template.render(kernelname=name, its=its, **experiment)
         try:
-            kernel = buildKernel(name, source, options=experiment['options'])
-            for it in range(3):
+            kernel = buildKernel(name, source)
+            for it in range(2):
                 t = timeKernel(name, kernel, block_x=block)
+            t_sum = 0
+            for it in range(3):
+                t_sum += timeKernel(name, kernel, block_x=block)
+            t = t_sum / 3
             print(getPtx(name))
         except Exception as e:
             print(e)
@@ -100,7 +90,7 @@ for experiment in experiments:
         times.append({'name': name, 'time': t, 'flops': flops})
 
 with open('/tmp/volkov1_%s.tsv' % deviceNameSimple, 'w') as f:
-    line='name\t\t\ttot ms\tgflops'
+    line='name\ttot ms\tgflops'
     print(line)
     f.write(line + '\n')
     for time_info in times:
