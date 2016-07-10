@@ -340,41 +340,25 @@ In Volkov, slide 30, he suggests that we can allocated shared memory dynamically
 
 [gpuexperiments/occupancy_dyn.py](gpuexperiments/occupancy_dyn.py)
 
-On 940M:
-```
-name			tot ms	gflops
-k1_g1024_b32_s0        	5.2	486
-k1_g1024_b32_s4        	5.8	443
-k1_g1024_b32_s8        	14.2	179
-k1_g1024_b32_s12       	18.3	140
-k1_g1024_b32_s16       	32.1	79
-k1_g1024_b32_s20       	32.0	80
-k1_g1024_b32_s24       	45.7	56
-k1_g1024_b32_s28       	45.4	56
-k1_g1024_b32_s32       	92.2	28
-k1_g1024_b32_s36       	93.4	27
-k1_g1024_b32_s40       	92.3	28
-k1_g1024_b32_s44       	92.4	28
-```
+For 940M:
 
-Clearly, dynamically allocated shared memory, on NVIDIA, will always be assigned to the blocks, and therefore control the occupancy.  No need to worry about it being optimized away.  Also, it's trivial here to get full occupancy, by just creating a shared memory of 0 bytes.
+<img src="img/occupancy_by_shared_940m.png?raw=true" width="600" height="400" />
 
-What happens if we use blocksize 64, instead of 32?
-```
-k1_g1024_b64_s0        	42.4	452
-k1_g1024_b64_s4        	23.5	409
-k1_g1024_b64_s8        	13.8	348
-k1_g1024_b64_s12       	10.9	274
-k1_g1024_b64_s16       	12.8	187
-k1_g1024_b64_s20       	10.8	164
-k1_g1024_b64_s24       	11.0	107
-k1_g1024_b64_s28       	9.4	125
-k1_g1024_b64_s32       	21.2	55
-k1_g1024_b64_s36       	10.4	55
-k1_g1024_b64_s40       	10.6	54
-k1_g1024_b64_s44       	10.4	55
-```
-No better than blocksize 32.  For Volkov experiments, we want to be able to control the percentage occupancy (ie slide 30 et al).  Can we do that?  The next experiments try to vary the occupancy from 5% to 100%, assuming that we can fit 32 blocks per multicore.
+[results/occupancy_dyn_940m.tsv](results/occupancy_dyn_940m.tsv)
+
+We can see that using dynamically allocated shared memory, on NVIDIA, can indeed control the occupancy, doesnt get optimized away.
+
+For Titan X:
+
+<img src="img/occupancy_by_shared_titanx.png?raw=true" width="600" height="400" />
+
+[results/occupancy_dyn_titanx.tsv](results/occupancy_dyn_titanx.tsv)
+
+Again, a similar graph.  Strangely, with no shared memory, the performance is slightly worse, which is mysterious.
+
+In both cases, using blocksize 64, instead of 32, improves flops somewhat, which we would expect, since blocksize 32 should only get a maximum occupancy of 50%.  Why? Because on sm5.0 and sm5.2, there is a maximum of 32 blocks per SM, which with a blocksize of 32 is a maximum of 32*32 = 1024 threads.  However, the maximum threads on sm5.0 and sm5.2 is 2048, so we are not getting 100% occupancy with blocksize 32.  Blocksize 64 should be able to obtain 100% occupancy.  Interestingly, the performance at high occupancies seems little affected by blocksize 32 versus 64.
+
+For Volkov experiments, we want to be able to control the percentage occupancy (ie slide 30 et al).  Can we do that?  The next experiments try to vary the occupancy from 5% to 100%, assuming that we can fit 32 blocks per multicore.
 
 <img src="img/occupancy_940m.png?raw=true" width="600" height="400" />
 

@@ -190,6 +190,37 @@ else:
         f.write(line + '\n')
     f.close()
 
+X32_list = []
+Y32_list = []
+X64_list = []
+Y64_list = []
+for timeinfo in times:
+    name = timeinfo['name']
+    if not name.startswith('k1_g1024_b'):
+        continue
+    block = int(name.split('_')[2].replace('b', ''))
+    x = int(name.split('_')[-1].replace('s', ''))
+    y = timeinfo['flops']
+    if block == 32:
+        X32_list.append(x)
+        Y32_list.append(y)
+    elif block == 64:
+        X64_list.append(x)
+        Y64_list.append(y)
+X32 = np.array(X32_list)
+X64 = np.array(X64_list)
+Y32 = np.array(Y32_list)
+Y64 = np.array(Y64_list)
+plt.plot(X32, Y32, label='blocksize 32')
+plt.plot(X64, Y64, label='blocksize 64')
+plt.axis([0, max(X32), 0, max(Y64)])
+plt.title(deviceNameSimple)
+plt.xlabel('Shared memory per block (KiB)')
+plt.ylabel('GFLOPS')
+legend = plt.legend(loc='upper right') # fontsize='x-large')
+plt.savefig('/tmp/occupancy_by_shared_%s.png' % deviceNameSimple, dpi=150)
+plt.close()
+
 X_list = []
 Y_list = []
 for timeinfo in times:
