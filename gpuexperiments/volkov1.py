@@ -29,7 +29,7 @@ code_template = r"""
                 float b = data[0];
                 float c = data[1];
                 #pragma unroll {{unroll}}
-                for(int i = 0; i < {{its / ilp}}; i++) {
+                for(int i = 0; i < {{its // ilp}}; i++) {
                     {% for j in range(ilp) %}
                       {% if fma %}
                         a{{j}} = fma(a{{j}}, b, c);
@@ -63,7 +63,9 @@ experiments = [
 
 for experiment in experiments:
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
-    for block in range(128,1024+128,128):
+    block_sizes = [32, 64, 96, 128, 160, 192] + list(range(256, 1024++128, 128))
+    # for block in range(128,1024+128,128):
+    for block in block_sizes:
     #    source = code_template
         its = (8000000//256//experiment['ilp']) * 256 * experiment['ilp']
         if block <= 384:
