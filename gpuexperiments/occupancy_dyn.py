@@ -10,6 +10,9 @@ import numpy as np
 import pyopencl as cl
 import subprocess
 import os
+import matplotlib.pyplot as plt
+plt.rcdefaults()
+import matplotlib.pyplot as plt
 from os.path import join
 from gpuexperiments.callkernel import call_cl_kernel
 #import gpuexperiments.cpu_check
@@ -59,8 +62,10 @@ compute_capability = (
     lib_clgpuexp.device.get_info(cl.device_info.COMPUTE_CAPABILITY_MAJOR_NV),
     lib_clgpuexp.device.get_info(cl.device_info.COMPUTE_CAPABILITY_MINOR_NV)
 )
-print('compute capability', compute_capability)
+deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
+print('deviceName', deviceName, 'compute capability', compute_capability)
 print('compute units', compute_units, 'max shared memory', maxShared)
+
 shared_memory_per_sm = None
 # data comes from http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls
 if compute_capability[0] == 5:
@@ -115,7 +120,11 @@ for experiment in experiments:
 # assume shared memory per sm = 65536 bytes (as per sm5.0)
 # assume full occupancy is 16 blocks per sm, but I'm not sure why...
 full_occupancy_bsm = 32
-for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
+X = np.arange(2, full_occupancy_bsm + 2, 2)
+Y = np.zeros((X.shape[0]), dtype=np.float32)
+# for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
+i = 0
+for blocks_per_sm in X:
     shared_bytes = shared_memory_per_sm // blocks_per_sm
     shared_bytes = (shared_bytes // 256) * 256
     print('occupancy', occupancy)
@@ -138,7 +147,7 @@ for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
     add_args = []
     if shared_bytes > 0:
         add_args.append(cl.LocalMemory(shared_bytes))
-    source = template.render(name=name, its=its, type='float', shared=shared_bytes > 0, **experiment['template_args'])
+    source = template.render(name=name, its=its, type='float', shared=shared_bytes > 0, fma=True, ilp=1)
     try:
         kernel = buildKernel(name, source)
         for it in range(3):
@@ -149,10 +158,25 @@ for blocks_per_sm in range(2, full_occupancy_bsm + 2, 2):
         break
 
     flops = its * block / (t/1000) * 2 * grid
+    Y[i] = flops / 1000 / 1000 / 1000
     times.append({'name': name, 'time': t, 'flops': flops})
+    i += 1
 
-print('name\t\t\ttot ms\tgflops')
+deviceNameSimple = deviceName.replace('GeForce', '').strip().lower()
+
+f = open('results/occupancy_dyn_%s.csv' % deviceNameSimple, 'w')
+line = 'name\ttot ms\tgflops'
+print(line)
+f.write(line + '\n')
 for time_info in times:
-    print('%s\t%.1f\t%.0f' % (time_info['name'].ljust(23), time_info['time'], time_info.get('flops', '') / 1000 / 1000 / 1000))
+    line = '%s\t%.1f\t%.0f' % (time_info['name'].ljust(23), time_info['time'], time_info.get('flops', '') / 1000 / 1000 / 1000)
+    print(line)
+    f.write(line + '\n')
+f.close()
 
+plt.plot(X, Y)
+plt.axis([0, max(X), 0, max(Y)])
+plt.xlabel('blocks per SM')
+plt.ylabel('GFLOPS')
+plt.savefig('img/occupancy_%s.png' % deviceNameSimple, dpi=150)
 

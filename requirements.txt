@@ -2,3 +2,4 @@ numpy
 jinja2
 pycuda
 pyopencl
+matplotlib

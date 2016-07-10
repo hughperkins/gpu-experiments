@@ -359,6 +359,43 @@ k1_g1024_b32_s44       	92.4	28
 
 Clearly, dynamically allocated shared memory, on NVIDIA, will always be assigned to the blocks, and therefore control the occupancy.  No need to worry about it being optimized away.  Also, it's trivial here to get full occupancy, by just creating a shared memory of 0 bytes.
 
+What happens if we use blocksize 64, instead of 32?
+```
+k1_g1024_b64_s0        	42.4	452
+k1_g1024_b64_s4        	23.5	409
+k1_g1024_b64_s8        	13.8	348
+k1_g1024_b64_s12       	10.9	274
+k1_g1024_b64_s16       	12.8	187
+k1_g1024_b64_s20       	10.8	164
+k1_g1024_b64_s24       	11.0	107
+k1_g1024_b64_s28       	9.4	125
+k1_g1024_b64_s32       	21.2	55
+k1_g1024_b64_s36       	10.4	55
+k1_g1024_b64_s40       	10.6	54
+k1_g1024_b64_s44       	10.4	55
+```
+No better than blocksize 32.  For Volkov experiments, we want to be able to control the percentage occupancy (ie slide 30 et al).  Can we do that?  The next experiments try to vary the occupancy from 5% to 100%, assuming that we can fit 32 blocks per multicore:
+```
+kernel_bsm2            	45.3	26
+kernel_bsm4            	29.8	81
+kernel_bsm6            	28.6	126
+kernel_bsm8            	26.4	182
+kernel_bsm10           	25.4	236
+kernel_bsm12           	25.6	281
+kernel_bsm14           	25.2	333
+kernel_bsm16           	24.3	394
+kernel_bsm18           	29.7	363
+kernel_bsm20           	28.5	421
+kernel_bsm22           	29.1	454
+kernel_bsm24           	36.0	400
+kernel_bsm26           	39.6	394
+kernel_bsm28           	42.2	398
+kernel_bsm30           	43.9	410
+kernel_bsm32           	46.1	417
+```
+Here is a graph of this:
+
+
 Titan X:
 ```
 name			tot ms	gflops
@@ -402,6 +439,8 @@ kernel_bsm28           	25.1	5344
 kernel_bsm30           	28.2	5110
 kernel_bsm32           	29.0	5292
 ```
+
+bsm4-32 means how many blocks per multicore processor.  On Titan X, sm5.2, each sm can hold 2048 threads, ie 64 warps.  So, we would expect to get the peak at bsm==32?  But actually the peak is weirdly at bsm==24.  I'm not sure why yet.  It is a mystery to think about :-)
 
 ## Reproduce Volkov's results
 
