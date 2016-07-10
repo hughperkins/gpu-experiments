@@ -64,7 +64,9 @@ code_template = r"""
 
 experiments = [
     {'name': 'memcpy_bsm{bsm}', 'code': code_template, 'ilp': 1},
-    {'name': 'memcpy_ilp2_bsm{bsm}', 'code': code_template, 'ilp': 2}
+    {'name': 'memcpy_ilp2_bsm{bsm}', 'code': code_template, 'ilp': 2},
+    {'name': 'memcpy_ilp4_bsm{bsm}', 'code': code_template, 'ilp': 4},
+    {'name': 'memcpy_ilp8_bsm{bsm}', 'code': code_template, 'ilp': 8}
 ]
 
 full_occupancy_bsm = 32  # this should probably not be hard coded...
