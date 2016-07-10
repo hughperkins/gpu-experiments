@@ -378,6 +378,8 @@ No better than blocksize 32.  For Volkov experiments, we want to be able to cont
 
 ![Occupancy, 940M](img/occupancy_940m.png?raw=true "Occupancy 940M")
 
+<img src="img/occupancy_940m.png?raw=true" width="200" height="200" />
+
 [results/occupancy_dyn_940m.tsv](results/occupancy_dyn_940m.tsv)
 
 It looks like we get the maximum at around 16 blocks per multicore, rather than 32.  Why?  Actually, the peak is for 22 blocks per multicore, which is mysterious.
