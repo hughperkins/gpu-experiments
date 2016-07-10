@@ -400,9 +400,9 @@ These experiments are carried out on 940M, using opencl, except where otherwise 
 
 [gpuexperiments/volkov1.py](gpuexperiments/volkov1.py)
 
-[results/volkov1_940m.tsv](results/volkov1_940m.tsv]
+[results/volkov1_940m.tsv](results/volkov1_940m.tsv)
 
-[results/volkov1_titanx.tsv](results/volkov1_titanx.tsv]
+[results/volkov1_titanx.tsv](results/volkov1_titanx.tsv)
 
 <img src="img/volkov1_940m.png?raw=true" width="600" height="400" />
 
