@@ -13,10 +13,13 @@ from os.path import join
 from gpuexperiments.callkernel import call_cl_kernel
 #import gpuexperiments.cpu_check
 from gpuexperiments.timecheck import inittime, timecheck
+import lib_clgpuexp
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
 
 
 initClGpu()
+deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
+deviceSimpleName = deviceName.replace('GeForce', '').strip().replace(' ', '').lower()
 
 template = r"""
     kernel void {{name}}(global {{type}} *data, global {{type}} *out) {
@@ -25,22 +28,23 @@ template = r"""
         {{type}} c = data[2];
         #pragma unroll {{unroll}}
         for(int i = 0; i < {{its}}; i++) {
-            a = a {{op}} b;
+            a = {{op}};
         }
         out[0] = a;
     }
 """
 
 experiments = [
-    {'name': '{type}_add', 'op': '+', 'type': 'float', 'code': template},
-    {'name': '{type}_mul', 'op': '*', 'type': 'float', 'code': template},
-    {'name': '{type}_sub', 'op': '-', 'type': 'float', 'code': template},
-    {'name': '{type}_div', 'op': '/', 'type': 'float', 'code': template},
+    {'name': '{type}_add', 'op': 'a + b', 'type': 'float', 'code': template, 'ops': 1},
+    {'name': '{type}_mul', 'op': 'a * b', 'type': 'float', 'code': template, 'ops': 1},
+    {'name': '{type}_sub', 'op': 'a - b', 'type': 'float', 'code': template, 'ops': 1},
+    {'name': '{type}_div', 'op': 'a / b', 'type': 'float', 'code': template, 'ops': 1},
+    {'name': '{type}_fma', 'op': 'fma(a, b, c)', 'type': 'float', 'code': template, 'ops': 2},
 
-    {'name': '{type}_mul', 'op': '*', 'type': 'int', 'code': template},
-    {'name': '{type}_div', 'op': '/', 'type': 'int', 'code': template},
-    {'name': '{type}_add', 'op': '+', 'type': 'int', 'code': template},
-    {'name': '{type}_sub', 'op': '-', 'type': 'int', 'code': template}
+    {'name': '{type}_mul', 'op': 'a * b', 'type': 'int', 'code': template, 'ops': 1},
+    {'name': '{type}_div', 'op': 'a / b', 'type': 'int', 'code': template, 'ops': 1}
+#    {'name': '{type}_add', 'op': 'a + b', 'type': 'int', 'code': template, 'ops': 1},
+#    {'name': '{type}_sub', 'op': 'a - b', 'type': 'int', 'code': template, 'ops': 1}
 ]
 
 times = []
@@ -64,11 +68,17 @@ for experiment in experiments:
     for it in range(3):
         t = timeKernel(name, kernel, block_x=block)
     print(getPtx(name))
-    gflops = 1/ (t / 1000) * 1 * block * its / 1000 / 1000 / 1000
+    gflops = 1/ (t / 1000) * experiment['ops'] * block * its / 1000 / 1000 / 1000
     op_ns = t / its * 1000 * 1000
     times.append({'name': name, 'time': t, 'gflops': gflops, 'op_ns': op_ns})
 
-print('name\t\ttot ms\top ns\tgflops')
+f = open('/tmp/maths2_%s.tsv' % deviceSimpleName, 'w')
+line = 'name\ttot ms\top ns\tgflops'
+print(line)
+f.write(line + '\n')
 for timeinfo in times:
-    print('%s\t%.1f\t%.2f\t%.2f' % (timeinfo['name'].ljust(10), timeinfo['time'], timeinfo['op_ns'], timeinfo['gflops']))
+    line = '%s\t%.1f\t%.2f\t%.2f' % (timeinfo['name'].ljust(10), timeinfo['time'], timeinfo['op_ns'], timeinfo['gflops'])
+    print(line)
+    f.write(line + '\n')
+f.close()
 

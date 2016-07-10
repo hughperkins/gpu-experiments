@@ -105,22 +105,17 @@ kernel05	12.2
 [gpuexperiments/maths2.py](gpuexperiments/maths2.py)
 
 Comparison of maths operators.  This is using a single block of 32 threads.  Results on 940M:
-```
-name		tot ms	op ns	gflops
-float_add 	60.9	6.09	5.26
-float_mul 	61.3	6.13	5.22
-float_sub 	61.1	6.11	5.24
-float_div 	185.5	18.55	1.72
-int_mul   	133.1	13.31	2.40
-int_div   	1485.0	148.50	0.22
-int_add   	0.1	0.01	4386.14
-int_sub   	0.1	0.01	4104.47
-```
-Clearly `int` add and sub are being optimized away here.  Not sure how to work around that?  Section 'effect of optimization on performance?' shows that just turning off optimizations gives unrepresentative results, so not really an option.
+
+<img src="img/maths2_940m.png?raw=true" width="600" height="400" />
+
+[results/maths2_940m.tsv](results/maths2_940m.tsv)
+
+`int add` and `int sub` were optimized away, so removed from the graph.  Not sure how to work around that?  Section 'effect of optimization on performance?' shows that just turning off optimizations gives unrepresentative results, so not really an option.
 
 For other operations, we see:
-- float add/sub/mul all same speed
-- float div about 3 times slower
+- `fma` is the fastest
+- float add/sub/mul all same speed as each other
+- float div about 3 times slower than mul
 - int mul half as fast as float mul
 - int div slllooowwww
 
