@@ -243,6 +243,6 @@ Shared Memory allocation unit size	256
 Warp allocation granularity	4
 ```
 
-- [clinfo output for 940M](results/clinfo_940.md)
+- [clinfo output for 940M](results/clinfo_940m.md)
 - [clinfo output for Titan X](results/clinfo_titanx.md)
 
