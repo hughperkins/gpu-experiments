@@ -10,15 +10,6 @@ Approximate target kernel I'm pondering as I write this https://github.com/hughp
 
 Terminology will be interchangeably cuda/opencl.  Experiments will run on different devices.  Where not specified, they are running on NVIDIA 940M, which is a Maxwell.
 
-### Effect of barrier on performance
-
-
-### Effect of workgroupsize on performance
-
-
-### Effect of memory layout for writes to global memory
-
-
 ### Effect of optimization on performance?
 
 [gpuexperiments/optimization2.py](gpuexperiments/optimization2.py)
@@ -153,6 +144,11 @@ Here is the same graph for Titan X:
 [results/occupancy_dyn_titanx.tsv](results/occupancy_dyn_titanx.tsv)
 
 This graph looks more like what we'd expect, since it's upward floating over more or less the entire range.  However, the peak is at 24, not 32, which is strange again.  Mysterious!
+
+## other things to check maybe
+
+* Effect of barrier on performance
+* Effect of memory layout for writes to global memory
 
 ## Reproduce Volkov's results
 
