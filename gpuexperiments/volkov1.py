@@ -13,6 +13,7 @@ from os.path import join
 from gpuexperiments.callkernel import call_cl_kernel
 #import gpuexperiments.cpu_check
 from gpuexperiments.timecheck import inittime, timecheck
+import lib_clgpuexp
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
 
 
@@ -68,9 +69,12 @@ deviceNameSimple = deviceName.replace('GeForce', '').strip().replace(' ', '').lo
 
 experiments = [
     #{'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False, 'ilp': 1}},
-    #{'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 1}},
-    #{'name': 'k1_fma_ilp2_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 2}},
-    {'name': 'k1_fma_ilp3_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 3}}
+    {'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 1}},
+    {'name': 'k1_fma_ilp2_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 2}},
+    {'name': 'k1_fma_ilp3_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 3}},
+    {'name': 'k1_fma_ilp4_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 4}},
+    {'name': 'k1_fma_ilp6_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 6}},
+    {'name': 'k1_fma_ilp8_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 8}}
     #{'name': 'k1_nofma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': False}},
     #{'name': 'k1_fma_fastmath_{block}', 'code': code_template, 'options': '-cl-fast-relaxed-math', 'template_args': {'fma': True}}
 ]
@@ -95,7 +99,7 @@ for experiment in experiments:
         flops = its * block / (t/1000) * 2
         times.append({'name': name, 'time': t, 'flops': flops})
 
-with open('/tmp/volkov1_%s' % deviceSimpleName, 'w') as f:
+with open('/tmp/volkov1_%s.tsv' % deviceNameSimple, 'w') as f:
     line='name\t\t\ttot ms\tgflops'
     print(line)
     f.write(line + '\n')
