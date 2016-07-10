@@ -83,7 +83,7 @@ name		tot ms	gflops
 k_staticinline	24.5	5.2
 k_void	24.7	5.2
 k_define	24.7	5.2```
-
+```
 With optimizations on, `#define`, `static inline`, or normal funcion, all run at the exact same speed.
 
 ### maths
