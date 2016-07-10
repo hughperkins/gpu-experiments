@@ -97,13 +97,13 @@ kernel void {{kernelname}} (global float *C, global float *A, global float *B, i
         local float As[BLOCK_SIZE][BLOCK_SIZE];
         local float Bs[BLOCK_SIZE][BLOCK_SIZE];
 
-        AS(ty, tx) = A[a + wA * ty + tx];
-        BS(ty, tx) = B[b + wB * ty + tx];
+        As[ty][tx] = A[a + wA * ty + tx];
+        Bs[ty][tx] = B[b + wB * ty + tx];
         barrier(CLK_LOCAL_MEM_FENCE);
 
         #pragma unroll
         for(int k = 0; k < BLOCK_SIZE; ++k) {
-            Csub += AS(ty, k) * BS(k, tx);
+            Csub += As[ty][k] * Bs[k][tx];
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
@@ -118,66 +118,10 @@ experiments = [
 
 full_occupancy_bsm = 32  # this should probably not be hard coded...
 for experiment in experiments:
-    # its = (4000000//256//experiment['template_args']['ilp']) * 256 * experiment['template_args']['ilp']
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
-    # for block in range(128,1024+128,128):
-    # for occupancy in range(10, 110, 10):
-    bsm_done = set()
-    typeSize = int(experiment['type'].replace('float', '')) * 4
-
-    for blocks_per_sm in range(2, 32 + 2, 2):
-        block = 32
-        grid = 2 * 1024 * 1024
-        grid = grid // experiment['ilp']
-        grid = grid // (typeSize//4)
-        if experiment['type'] != 'float4':
-            if blocks_per_sm == 2:
-                grid = grid // 6
-            elif blocks_per_sm == 4:
-                grid = grid // 2
-
-        shared_bytes = shared_memory_per_sm // blocks_per_sm
-        shared_bytes = ((shared_bytes + 0) // 256) * 256
-        if shared_bytes >= maxShared * 1024:
-            print('exceeds maximum block local memory => skipping')
-            continue
-        actual_blocks_per_sm = shared_memory_per_sm // shared_bytes
-        occupancy = actual_blocks_per_sm / full_occupancy_bsm * 100
-
-        print('occupancy', occupancy,'shared_bytes', shared_bytes, 'blocks_per_sm', blocks_per_sm,
-              'actual_blocks_per_sm', actual_blocks_per_sm, 'shared_memory_per_sm', shared_memory_per_sm)
-
-        if actual_blocks_per_sm in bsm_done:
-            continue
-        bsm_done.add(actual_blocks_per_sm)
-        name = experiment['name'].format(bsm=actual_blocks_per_sm)
-        clearComputeCache()
-        source = template.render(kernelname=name, **experiment)
-        # print('source', source)
-        try:
-            kernel = buildKernel(name, source)
-            print('built kernel')
-            for it in range(2):
-                t = timeKernel(name, kernel, grid_x=grid, block_x=block, add_args=[
-                    cl.LocalMemory(shared_bytes)
-                ])
-            t_sum = 0
-            for it in range(3):
-                t_sum += timeKernel(name, kernel, grid_x=grid, block_x=block, add_args=[
-                    cl.LocalMemory(shared_bytes)
-                ])
-            # print(getPtx(name))
-            t = t_sum / 3
-        except Exception as e:
-            print(e)
-            break
-
-        # flops = its * block / (t/1000) * 2
-        # * 2, because we copy data in both directions, ie twice
-        bandwidth_gib = grid * block * experiment['ilp'] * 2 * typeSize / (t/1000) / 1024 / 1024 / 1024
-        print('bandwidth_gib', bandwidth_gib)
-        times.append({'name': name, 'time': t, 'bandwidth_gib': bandwidth_gib})
-
+    bandwidth_gib = grid * block * experiment['ilp'] * 2 * typeSize / (t/1000) / 1024 / 1024 / 1024
+    print('bandwidth_gib', bandwidth_gib)
+    times.append({'name': name, 'time': t, 'bandwidth_gib': bandwidth_gib})
 
 f = open('/tmp/volkov_mm_%s.tsv' % deviceSimpleName, 'w')
 line = 'name\ttot ms\tbw gib'
