@@ -39,7 +39,7 @@ def initClGpu(gpu_idx=0):
     d = np.zeros((1024*1024 * 32 * 2,), dtype=np.float32)
     d_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=d)
 
-    out = np.zeros((1024,), dtype=np.float32)
+    out = np.zeros((1024*1024 * 32 * 2,), dtype=np.float32)
     out_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=out)
 
     return ctx, q, mf
