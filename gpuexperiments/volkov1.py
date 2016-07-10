@@ -63,6 +63,9 @@ code_template_nopragma = r"""
             }
         """
 
+deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
+deviceNameSimple = deviceName.replace('GeForce', '').strip().replace(' ', '').lower()
+
 experiments = [
     #{'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False, 'ilp': 1}},
     #{'name': 'k1_fma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': True, 'ilp': 1}},
@@ -92,8 +95,12 @@ for experiment in experiments:
         flops = its * block / (t/1000) * 2
         times.append({'name': name, 'time': t, 'flops': flops})
 
-
-print('name\t\t\ttot ms\tgflops')
-for time_info in times:
-    print('%s\t%.1f\t%.0f' % (time_info['name'].ljust(23), time_info['time'], time_info.get('flops', '') / 1000 / 1000 / 1000))
+with open('/tmp/volkov1_%s' % deviceSimpleName, 'w') as f:
+    line='name\t\t\ttot ms\tgflops'
+    print(line)
+    f.write(line + '\n')
+    for time_info in times:
+        line = '%s\t%.1f\t%.0f' % (time_info['name'], time_info['time'], time_info.get('flops', '') / 1000 / 1000 / 1000)
+        print(line)
+        f.write(line + '\n')
 

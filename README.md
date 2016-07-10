@@ -422,6 +422,8 @@ k1_fma_1024 49.759864807128906 164.63067236521837
 
 In theory we should get 752GFLOPS / 3 = 251 GLOPS, I think.  Seems like there is something wrong with my calculations somewhere?
 
+<img src="img/volkov1_940m.png?raw=true" width="600" height="400" />
+
 Is it because of OpenCL?  Try with cuda, [gpuexperiments/volkov1_cuda.py](gpuexperiments/volkov1_cuda.py).  No change:
 ```
 kernel time(ms) GFLOPS
@@ -466,6 +468,8 @@ k1_fma_1024 28.693199157714844 285.50319380463327
 ```
 
 Theoretical for titan x should be `6610/24 = 275 GFLOPS`, so this looks fairly ok...  a little high perhaps???
+
+<img src="img/volkov1_titanx.png?raw=true" width="600" height="400" />
 
 Titan X, cuda:
 ```
