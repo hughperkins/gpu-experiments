@@ -191,7 +191,7 @@ For Titan X, we get benefit of ilp all the way up to ilp==8.  For ilp 6 and 8, t
 - flops: 752 GFLOPS (`980MHz * 384 cuda-cores * 2 ops-per-fma / 1000`)
 - compute units (==SMMs): 3  (from clinfo `max compute units`)
 - clock frequency: 980MHz (from clinfo `max clock frequency`)
-- shared memory: 48KiB  (from clinfo `Local memory size`)
+- Max shared memory per block: 48KiB  (from clinfo `Local memory size`)
 - CUDA cores: 384 (from https://en.wikipedia.org/wiki/GeForce_900_series core config 'shader processors')
 
 Titan X:
@@ -201,7 +201,7 @@ Titan X:
 - compute units (==SMMs): 24  (from clinfo `max compute units`)
 - cuda cores per compute unit: 128
 - L1 cache: 48KB
-- shared memory: 96KB
+- Max shared memory per block: 48KiB  (from clinfo `Local memory size`)
 - CUDA cores: 3072
 
 References:
@@ -211,7 +211,9 @@ References:
 
 ### Compute capability limits
 
-Physical limits for SM5.0, corresponding to 940M, from http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls :
+From http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls
+
+Physical limits for SM5.0, corresponding to 940M:
 ```
 Threads per Warp	32
 Max Warps per Multiprocessor	64
@@ -229,7 +231,7 @@ Shared Memory allocation unit size	256
 Warp allocation granularity	4
 ```
 
-For SM5.2, corresponding to Titan X, using the same calculator sheet:
+Limits for SM5.2, corresponding to Titan X:
 ```
 Threads per Warp	32
 Max Warps per Multiprocessor	64
