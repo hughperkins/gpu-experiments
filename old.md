@@ -2,7 +2,65 @@
 
 These experiments have been removed from main README, because they have issues that compromise their usage.  Some examples of issues:
 - looks like building without optimizations is not representative of performance with optimizations.  The difference in runtime execution times is order(s) of magnitude
-s
+
+### If no optimization, does code with no side-effects get removed?
+
+[gpuexperiments/optimization_shortcutting.py](gpuexperiments/optimization_shortcutting.py)
+
+On 940M:
+```
+name		tot ms
+kernel01	11.2
+kernel02	12.0
+kernel03	14.8
+kernel04	12.5
+kernel05	9.5
+kernel06	9.4
+kernel07	10.1
+kernel08	11.5
+kernel09	34.3
+kernel10	23.0
+kernel11	33.9
+kernel12	32.3
+kernel13	113.1
+kernel14	115.4
+kernel15	113.8
+kernel16	48.4
+kernel17	10.4
+kernel18	13.4
+kernel19	14.8
+kernel20	26.3
+kernel21	28.4
+kernel22	36.0
+kernel23	21.1
+kernel24	25.0
+kernel25	12.0
+kernel26	17.8
+kernel27	32.8
+kernel28	84.4
+kernel29	81.9
+kernel30	84.3
+kernel31	81.9
+kernel32	85.8
+```
+
+Observations:
+- even with optimization off, if you dont save the value of a variable to global memory, or use it in some
+other way, that variable entirely vanishes  (kernels 1 to 8 or so)
+- it's enough to save each variable to the same location in global memory, in order for all variables to not be pruned (eg kernel 8)
+- a float is stored as an unsigned integer, u32, at least, in the ptx (kernel 4 etc)
+- even if you use integer variables, the values eg 1,2,3, are stored in float representation, if you're going to ultimately store in a float global array (eg kernel 4)
+- you can freely change the global memory array between float and int.  This works ok (though obviously returned data values will be different...).  This affects how numbers stored to that array are represented in the ptx
+- calling `get_global_id(0)` is a masssssiiiivvveee amount of ptx code (see kernel9)
+- calling `get_local_id(0)` does too... (kernel10)
+- changed to shared memory are not pruned, even if shared memory is never read (kernel17)
+- variables containing constants, such variables with values added, such variables with similar variables added, all become the actual constant value (kernel19) (even though optimization is off)
+- for-loops that simply add a constant to a variable a constant number of times are not pruned (this is with optimization off) (kernel20)
+- said for loop has a noticeable effect on execution time (kernel20 vs kernel19)
+- calls to get_local_id(0) are not cached (26 and 27), and adidtional calls take significant time
+- get_global_id is slower than get_local_id (kernel 21, 23)
+- get local id takes noticeable time (kernel 23, kernel 25)
+
 ## maths
 
 - we use shared memory, to avoid both things being optimized away (private memory), or global memory associated slowdowns (global memory)
