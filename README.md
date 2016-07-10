@@ -88,17 +88,12 @@ Without any way of explaining this discrepancy, it looks like we should do all e
 Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)
 
 ```
-name		tot ms
-kernel01	38.1
-kernel02	40.5
-kernel03	8.3
-kernel04	11.1
-kernel05	12.2
-```
+name		tot ms	gflops
+k_staticinline	24.5	5.2
+k_void	24.7	5.2
+k_define	24.7	5.2```
 
-- with optimizations off, then no, see kernel 1, 2
-  - #define runs 5 times faster  (kernel 3)
-- with optimizations on, #define and static inline run in same time, no difference (kernel 1,3,4,5)
+With optimizations on, `#define`, `static inline`, or normal funcion, all run at the exact same speed.
 
 ### maths
 
