@@ -29,6 +29,8 @@ f.close()
 
 X_list = []
 Y_list = []
+X2_list = []
+Y2_list = []
 for timeinfo in times:
     name = timeinfo['name']
     x = int(timeinfo['name'].split('_')[-1].replace('bsm', ''))
@@ -36,14 +38,23 @@ for timeinfo in times:
     if name.startswith('memcpy_bsm') and 'ilp' not in name:
         X_list.append(x)
         Y_list.append(y)
+    else:
+        ilp = int(timeinfo['name'].split('_')[1].replace('ilp', ''))
+        if ilp == 2:
+            X2_list.append(x)
+            Y2_list.append(y)
 X = np.array(X_list)
 Y = np.array(Y_list)
+X2 = np.array(X2_list)
+Y2 = np.array(Y2_list)
 
-print('X', X)
-print('Y', Y)
+# print('X', X)
+# print('Y', Y)
 thismax = 0
 plt.plot(X, Y, label='ilp 1')
 thismax = max(thismax, max(Y))
+plt.plot(X2, Y2, label='ilp 2')
+thismax = max(thismax, max(Y2))
 
 #plt.axis([0, max(X), 0, max(Y)])
 plt.axis([0, max(X), 0, thismax])

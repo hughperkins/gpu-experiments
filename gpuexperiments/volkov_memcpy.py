@@ -47,29 +47,42 @@ else:
 assert shared_memory_per_sm is not None
 
 code_template = r"""
-    kernel void {{name}} (global float *data, global float *out, local float *F) {
+    kernel void {{kernelname}} (global float *data, global float *out, local float *F) {
+        int blockSize = get_local_size(0);
         int iblock = get_group_id(0);
-        int index = get_local_id(0) + iblock * get_local_size(0);
+        int index = get_local_id(0) + {{ilp}} * iblock * blockSize;
 
-        float a0 = data[index];
-        out[index] = a0;
+        {% for i in range(ilp) %}
+            float a{{i}} = data[index + {{i}} * blockSize];
+        {% endfor %}
+
+        {% for i in range(ilp) %}
+            out[index + {{i}} * blockSize] = a{{i}};
+        {% endfor %}
     }
 """
 
 experiments = [
-    {'name': 'memcpy_bsm{bsm}', 'code': code_template, 'ilp': 1}
+    {'name': 'memcpy_bsm{bsm}', 'code': code_template, 'ilp': 1},
+    {'name': 'memcpy_ilp2_bsm{bsm}', 'code': code_template, 'ilp': 2}
 ]
 
 full_occupancy_bsm = 32  # this should probably not be hard coded...
 for experiment in experiments:
     # its = (4000000//256//experiment['template_args']['ilp']) * 256 * experiment['template_args']['ilp']
-    block = 32
-    grid = 1024 * 1024
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
     # for block in range(128,1024+128,128):
     # for occupancy in range(10, 110, 10):
     bsm_done = set()
     for blocks_per_sm in range(2, 32 + 2, 2):
+        block = 32
+        grid = 2 * 1024 * 1024
+        grid = grid // experiment['ilp']
+        if blocks_per_sm == 2:
+            grid = grid // 6
+        elif blocks_per_sm == 4:
+            grid = grid // 2
+
         shared_bytes = shared_memory_per_sm // blocks_per_sm
         shared_bytes = ((shared_bytes + 0) // 256) * 256
         if shared_bytes >= maxShared * 1024:
@@ -86,22 +99,28 @@ for experiment in experiments:
         bsm_done.add(actual_blocks_per_sm)
         name = experiment['name'].format(bsm=actual_blocks_per_sm)
         clearComputeCache()
-        source = template.render(name=name)
+        source = template.render(kernelname=name, **experiment)
         # print('source', source)
         try:
             kernel = buildKernel(name, source)
             print('built kernel')
-            for it in range(3):
+            for it in range(2):
                 t = timeKernel(name, kernel, grid_x=grid, block_x=block, add_args=[
                     cl.LocalMemory(shared_bytes)
                 ])
+            t_sum = 0
+            for it in range(3):
+                t_sum += timeKernel(name, kernel, grid_x=grid, block_x=block, add_args=[
+                    cl.LocalMemory(shared_bytes)
+                ])
             # print(getPtx(name))
+            t = t_sum / 3
         except Exception as e:
             print(e)
             break
 
         # flops = its * block / (t/1000) * 2
-        bandwidth_gib = grid * block * 4 / (t/1000) / 1024 / 1024 / 1024
+        bandwidth_gib = grid * block * experiment['ilp'] * 4 / (t/1000) / 1024 / 1024 / 1024
         print('bandwidth_gib', bandwidth_gib)
         times.append({'name': name, 'time': t, 'bandwidth_gib': bandwidth_gib})
 
