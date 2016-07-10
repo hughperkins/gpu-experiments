@@ -28,31 +28,49 @@ for row in reader:
     times.append({'name': row['name'], 'bw': float(row['bw gib'])})
 f.close()
 
-X_list_by_ilp = defaultdict(list)
-Y_list_by_ilp = defaultdict(list)
+X_lists = []
+Y_lists = []
+names = []
+#X_list_by_ilp = defaultdict(list)
+#Y_list_by_ilp = defaultdict(list)
 
+lastFamily = None
+list_idx = -1
 for timeinfo in times:
     name = timeinfo['name']
-    x = int(timeinfo['name'].split('_')[-1].replace('bsm', ''))
-    y = timeinfo['bw']
+    family = name.split('bsm')[0]
     ilp = 1
     if 'ilp' in name:
         ilp = int(timeinfo['name'].split('_')[1].replace('ilp', ''))
-    X_list_by_ilp[ilp].append(x)
-    Y_list_by_ilp[ilp].append(y)
+    if family != lastFamily:
+        list_idx += 1
+        X_lists.append([])
+        Y_lists.append([])
+        lastFamily = family
+        floatType = 'float'
+        if 'float2' in family:
+            floatType = 'float2'
+        if 'float4' in family:
+            floatType = 'float4'
+        names.append('%s ilp %s' % (floatType, ilp))
+    x = int(timeinfo['name'].split('_')[-1].replace('bsm', ''))
+    y = timeinfo['bw']
+    X_lists[list_idx].append(x)
+    Y_lists[list_idx].append(y)
 
 thismax = 0
-for ilp in sorted(X_list_by_ilp.keys()):
-    X = np.array(X_list_by_ilp[ilp])
-    Y = np.array(Y_list_by_ilp[ilp])
-    plt.plot(X, Y, label='ilp %s' % ilp)
+for i, name in enumerate(names):
+# for ilp in sorted(X_list_by_ilp.keys()):
+    X = np.array(X_lists[i])
+    Y = np.array(Y_lists[i])
+    plt.plot(X, Y, label=name)
     thismax = max(thismax, max(Y))
 
 #plt.axis([0, max(X), 0, max(Y)])
 plt.axis([0, max(X), 0, thismax])
 plt.title(deviceNameSimple)
 plt.xlabel('Blocks per SM')
-plt.ylabel('Bandwidth (GiB)')
+plt.ylabel('Bandwidth (GiB/s)')
 legend = plt.legend(loc='lower right') # fontsize='x-large')
 plt.savefig('/tmp/volkov_memcpy_%s.png' % deviceNameSimple, dpi=150)
 

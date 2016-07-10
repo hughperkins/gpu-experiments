@@ -47,13 +47,13 @@ else:
 assert shared_memory_per_sm is not None
 
 code_template = r"""
-    kernel void {{kernelname}} (global float *data, global float *out, local float *F) {
+    kernel void {{kernelname}} (global {{type}} *data, global {{type}} *out, local float *F) {
         int blockSize = get_local_size(0);
         int iblock = get_group_id(0);
         int index = get_local_id(0) + {{ilp}} * iblock * blockSize;
 
         {% for i in range(ilp) %}
-            float a{{i}} = data[index + {{i}} * blockSize];
+            {{type}} a{{i}} = data[index + {{i}} * blockSize];
         {% endfor %}
 
         {% for i in range(ilp) %}
@@ -63,10 +63,12 @@ code_template = r"""
 """
 
 experiments = [
-    {'name': 'memcpy_bsm{bsm}', 'code': code_template, 'ilp': 1},
-    {'name': 'memcpy_ilp2_bsm{bsm}', 'code': code_template, 'ilp': 2},
-    {'name': 'memcpy_ilp4_bsm{bsm}', 'code': code_template, 'ilp': 4},
-    {'name': 'memcpy_ilp8_bsm{bsm}', 'code': code_template, 'ilp': 8}
+    #{'name': 'memcpy_ilp1_float_bsm{bsm}', 'code': code_template, 'ilp': 1, 'type': 'float'},
+    #{'name': 'memcpy_ilp2_float_bsm{bsm}', 'code': code_template, 'ilp': 2, 'type': 'float'},
+    #{'name': 'memcpy_ilp4_float_bsm{bsm}', 'code': code_template, 'ilp': 4, 'type': 'float'},
+    #{'name': 'memcpy_ilp8_float_bsm{bsm}', 'code': code_template, 'ilp': 8, 'type': 'float'},
+    {'name': 'memcpy_ilp8_float2_bsm{bsm}', 'code': code_template, 'ilp': 8, 'type': 'float2'},
+    {'name': 'memcpy_ilp8_float4_bsm{bsm}', 'code': code_template, 'ilp': 8, 'type': 'float4'}
 ]
 
 full_occupancy_bsm = 32  # this should probably not be hard coded...
@@ -76,14 +78,18 @@ for experiment in experiments:
     # for block in range(128,1024+128,128):
     # for occupancy in range(10, 110, 10):
     bsm_done = set()
+    typeSize = int(experiment['type'].replace('float', '')) * 4
+
     for blocks_per_sm in range(2, 32 + 2, 2):
         block = 32
         grid = 2 * 1024 * 1024
         grid = grid // experiment['ilp']
-        if blocks_per_sm == 2:
-            grid = grid // 6
-        elif blocks_per_sm == 4:
-            grid = grid // 2
+        grid = grid // (typeSize//4)
+        if experiment['type'] != 'float4':
+            if blocks_per_sm == 2:
+                grid = grid // 6
+            elif blocks_per_sm == 4:
+                grid = grid // 2
 
         shared_bytes = shared_memory_per_sm // blocks_per_sm
         shared_bytes = ((shared_bytes + 0) // 256) * 256
@@ -122,7 +128,8 @@ for experiment in experiments:
             break
 
         # flops = its * block / (t/1000) * 2
-        bandwidth_gib = grid * block * experiment['ilp'] * 4 / (t/1000) / 1024 / 1024 / 1024
+        # * 2, because we copy data in both directions, ie twice
+        bandwidth_gib = grid * block * experiment['ilp'] * 2 * typeSize / (t/1000) / 1024 / 1024 / 1024
         print('bandwidth_gib', bandwidth_gib)
         times.append({'name': name, 'time': t, 'bandwidth_gib': bandwidth_gib})
 
