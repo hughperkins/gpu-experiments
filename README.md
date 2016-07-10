@@ -1,7 +1,5 @@
 # gpu-experiments
 
-## Specific
-
 Informal experiments on various gpu kernel questions
 
 With varying level of rigorousness...
@@ -9,6 +7,8 @@ With varying level of rigorousness...
 Approximate target kernel I'm pondering as I write this https://github.com/hughperkins/neonCl-underconstruction/blob/c80492bd1fc5fd2e33ef3ad06f601a39a68ce9b3/winograd_kernels_cl.py#L317
 
 Terminology will be interchangeably cuda/opencl.  Experiments will run on different devices.  Where not specified, they are running on NVIDIA 940M, which is a Maxwell.
+
+## Ad-hoc questions
 
 ### Effect of optimization on performance?
 
@@ -177,12 +177,14 @@ For Titan X, we get benefit of ilp all the way up to ilp==8.  For ilp 6 and 8, t
 
 
 
-## Hardware used
+## Context, theoretical limits
+
+### Hardware used
 
 - 940M: Thinkpad T450s laptop
 - Titan X: http://nimbix.net  I'm not affiliated with nimbix, nor do I receive sponsorship from them.  I think they provide a great service, and I hope that lots of people use them, so they can be profitable and survive :-)  Per-second billing, and Titan X is a breath of fresh air after using EC2 for many months
 
-## Theoretical limits
+### Device physical characteristics
 
 940M, GM108M (rev a2):
 - memory bandwidth: 14.40GB/s
@@ -206,6 +208,8 @@ References:
 - https://en.wikipedia.org/wiki/GeForce_900_series
 - https://www.techpowerup.com/gpudb/2643/geforce-940m
 - http://www.tomshardware.com/reviews/nvidia-geforce-gtx-titan-x-gm200-maxwell,4091.html
+
+### Compute capability limits
 
 Physical limits for SM5.0, corresponding to 940M, from http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls :
 ```
@@ -242,6 +246,8 @@ Register allocation granularity	warp
 Shared Memory allocation unit size	256
 Warp allocation granularity	4
 ```
+
+### Clinfo output
 
 - [clinfo output for 940M](results/clinfo_940m.md)
 - [clinfo output for Titan X](results/clinfo_titanx.md)
