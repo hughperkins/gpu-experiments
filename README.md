@@ -104,6 +104,7 @@ For other operations, we see:
 - float div about 3 times slower than mul
 - int mul half as fast as float mul
 - int div slllooowwww
+- float sqrt is pretty slow, but still faster than int div
 
 ### Occupancy
 

@@ -40,6 +40,9 @@ experiments = [
     {'name': '{type}_sub', 'op': 'a - b', 'type': 'float', 'code': template, 'ops': 1},
     {'name': '{type}_div', 'op': 'a / b', 'type': 'float', 'code': template, 'ops': 1},
     {'name': '{type}_fma', 'op': 'fma(a, b, c)', 'type': 'float', 'code': template, 'ops': 2},
+    {'name': '{type}_sqrt', 'op': 'sqrt(a)', 'type': 'float', 'code': template, 'ops': 1},
+    {'name': '{type}_native_sqrt', 'op': 'native_sqrt(a)', 'type': 'float', 'code': template, 'ops': 1},
+    {'name': '{type}_tanh', 'op': 'tanh(a)', 'type': 'float', 'code': template, 'ops': 1},
 
     {'name': '{type}_mul', 'op': 'a * b', 'type': 'int', 'code': template, 'ops': 1},
     {'name': '{type}_div', 'op': 'a / b', 'type': 'int', 'code': template, 'ops': 1}
