@@ -165,7 +165,7 @@ These experiments are carried out on 940M, using opencl, except where otherwise 
 
 [results/volkov1_940m.tsv](results/volkov1_940m.tsv)
 
-On 940M, with no ilp, we never actually hit the peak, using 1 block of maximum threads.  Seems like we hit some kind of other bottleneck, that is worked around by using ilp of 2 or more.  This is using unroll 64 throughout.
+On 940M, with no ilp, we never actually hit the peak, using 1 block of maximum threads.  Seems like we hit some kind of other bottleneck, that is worked around by using ilp of 2 or more.  This is using unroll 64 throughout.  ilp 6 and 8 has a surprisingly low value for blocksize 192.
 
 <img src="img/volkov1_titanx.png?raw=true" width="600" height="400" />
 
