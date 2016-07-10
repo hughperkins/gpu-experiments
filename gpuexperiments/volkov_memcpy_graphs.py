@@ -51,7 +51,7 @@ for ilp in sorted(X_list_by_ilp.keys()):
 #plt.axis([0, max(X), 0, max(Y)])
 plt.axis([0, max(X), 0, thismax])
 plt.title(deviceNameSimple)
-plt.xlabel('Blocksize')
+plt.xlabel('Blocks per SM')
 plt.ylabel('Bandwidth (GiB)')
 legend = plt.legend(loc='lower right') # fontsize='x-large')
 plt.savefig('/tmp/volkov_memcpy_%s.png' % deviceNameSimple, dpi=150)
