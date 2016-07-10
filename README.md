@@ -376,7 +376,7 @@ k1_g1024_b64_s44       	10.4	55
 ```
 No better than blocksize 32.  For Volkov experiments, we want to be able to control the percentage occupancy (ie slide 30 et al).  Can we do that?  The next experiments try to vary the occupancy from 5% to 100%, assuming that we can fit 32 blocks per multicore.
 
-<img src="img/occupancy_940m.png?raw=true" width="800" height="600" />
+<img src="img/occupancy_940m.png?raw=true" width="600" height="400" />
 
 [results/occupancy_dyn_940m.tsv](results/occupancy_dyn_940m.tsv)
 
@@ -384,7 +384,7 @@ It looks like we get the maximum at around 16 blocks per multicore, rather than 
 
 Here is the same graph for Titan X:
 
-<img src="img/occupancy_titanx.png?raw=true" width="800" height="600" />
+<img src="img/occupancy_titanx.png?raw=true" width="600" height="400" />
 
 [results/occupancy_dyn_titanx.tsv](results/occupancy_dyn_titanx.tsv)
 
