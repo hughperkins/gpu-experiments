@@ -39,6 +39,7 @@ print('times', times)
 labels = []
 values = []
 
+times.reverse()
 for timeinfo in times:
     labels.append(timeinfo['name'].replace('_', ' '))
     values.append(timeinfo['gflops'])
