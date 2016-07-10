@@ -698,3 +698,21 @@ Shared Memory allocation unit size	256
 Warp allocation granularity	4
 ```
 
+For SM5.2, corresponding to Titan X, using the same calculator sheet:
+```
+Threads per Warp	32
+Max Warps per Multiprocessor	64
+Max Thread Blocks per Multiprocessor	32
+Max Threads per Multiprocessor	2048
+Maximum Thread Block Size	1024
+Registers per Multiprocessor	65536
+Max Registers per Thread Block	65536
+Max Registers per Thread	255
+Shared Memory per Multiprocessor (bytes)	98304
+Max Shared Memory per Block	49152
+Register allocation unit size	256
+Register allocation granularity	warp
+Shared Memory allocation unit size	256
+Warp allocation granularity	4
+```
+
