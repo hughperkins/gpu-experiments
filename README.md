@@ -394,7 +394,7 @@ kernel_bsm30           	43.9	410
 kernel_bsm32           	46.1	417
 ```
 Here is a graph of this:
-
+![Occupancy, 940M](image/occupancy_940m.png?raw=true "Occupancy 940M")
 
 Titan X:
 ```
