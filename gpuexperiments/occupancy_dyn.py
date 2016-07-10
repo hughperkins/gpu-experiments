@@ -164,7 +164,7 @@ for blocks_per_sm in X:
 
 deviceNameSimple = deviceName.replace('GeForce', '').strip().lower()
 
-f = open('results/occupancy_dyn_%s.tsv' % deviceNameSimple, 'w')
+f = open('/tmp/occupancy_dyn_%s.tsv' % deviceNameSimple, 'w')
 line = 'name\ttot ms\tgflops'
 print(line)
 f.write(line + '\n')
@@ -178,5 +178,5 @@ plt.plot(X, Y)
 plt.axis([0, max(X), 0, max(Y)])
 plt.xlabel('blocks per SM')
 plt.ylabel('GFLOPS')
-plt.savefig('img/occupancy_%s.png' % deviceNameSimple, dpi=150)
+plt.savefig('/tmp/occupancy_%s.png' % deviceNameSimple, dpi=150)
 

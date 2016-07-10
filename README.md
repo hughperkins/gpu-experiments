@@ -374,27 +374,11 @@ k1_g1024_b64_s36       	10.4	55
 k1_g1024_b64_s40       	10.6	54
 k1_g1024_b64_s44       	10.4	55
 ```
-No better than blocksize 32.  For Volkov experiments, we want to be able to control the percentage occupancy (ie slide 30 et al).  Can we do that?  The next experiments try to vary the occupancy from 5% to 100%, assuming that we can fit 32 blocks per multicore:
-```
-kernel_bsm2            	45.3	26
-kernel_bsm4            	29.8	81
-kernel_bsm6            	28.6	126
-kernel_bsm8            	26.4	182
-kernel_bsm10           	25.4	236
-kernel_bsm12           	25.6	281
-kernel_bsm14           	25.2	333
-kernel_bsm16           	24.3	394
-kernel_bsm18           	29.7	363
-kernel_bsm20           	28.5	421
-kernel_bsm22           	29.1	454
-kernel_bsm24           	36.0	400
-kernel_bsm26           	39.6	394
-kernel_bsm28           	42.2	398
-kernel_bsm30           	43.9	410
-kernel_bsm32           	46.1	417
-```
-Here is a graph of this:
+No better than blocksize 32.  For Volkov experiments, we want to be able to control the percentage occupancy (ie slide 30 et al).  Can we do that?  The next experiments try to vary the occupancy from 5% to 100%, assuming that we can fit 32 blocks per multicore.
+
 ![Occupancy, 940M](img/occupancy_940m.png?raw=true "Occupancy 940M")
+
+[results/occupancy_dyn_940m.tsv](results/occupancy_dyn_940m.tsv)
 
 Titan X:
 ```
