@@ -19,6 +19,7 @@ from gpuexperiments.callkernel import call_cl_kernel
 from gpuexperiments.timecheck import inittime, timecheck
 import lib_clgpuexp
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel3d, buildKernel, initClGpu
+from lib_clgpuexp import dumpSass
 
 
 initClGpu()
@@ -50,7 +51,7 @@ else:
     raise Exception('compute capability %s not recognized' % compute_capability)
 assert shared_memory_per_sm is not None
 
-code_template = r"""
+header = r"""
 // adapted from CUDA 7.5 SDK
 // original copyright header:
 /**
@@ -76,7 +77,9 @@ code_template = r"""
 // trademarks are propagated and used properly and the
 // Derivatives include the following statement: "This software
 // contains source code provided by NVIDIA Corporation."
+"""
 
+code_template_1 = header + r"""
 #define BLOCK_SIZE {{BLOCK_SIZE}}
 
 kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
@@ -103,7 +106,8 @@ kernel void {{kernelname}} (global float *C, global float *A, global float *B, i
 
         #pragma unroll 32
         for(int k = 0; k < BLOCK_SIZE; ++k) {
-            Csub += As[ty][k] * Bs[k][tx];
+            // Csub += As[ty][k] * Bs[k][tx];
+            Csub = fma(As[ty][k], Bs[k][tx], Csub);
         }
         barrier(CLK_LOCAL_MEM_FENCE);
     }
@@ -112,34 +116,207 @@ kernel void {{kernelname}} (global float *C, global float *A, global float *B, i
 }
 """
 
-experiments = [
-    #{'name': 'memcpy_ilp1_float_bsm{bsm}', 'code': code_template, 'ilp': 1, 'type': 'float'},
-]
+code_template_2 = header + r"""
+#define BLOCK_SIZE {{BLOCK_SIZE}}
+
+kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
+    int bx = get_group_id(0);
+    int by = get_group_id(1);
+
+    int tx = get_local_id(0);
+    int ty = get_local_id(1);
+
+    int aBegin = wA * BLOCK_SIZE * by;
+    int aEnd   = aBegin + wA - 1;
+    int aStep  = BLOCK_SIZE;
+    int bBegin = BLOCK_SIZE * bx;
+    int bStep  = BLOCK_SIZE * wB;
+
+    float Csub[2];
+    Csub[0] = 0;
+    Csub[1] = 0;
+    for (int a = aBegin, b = bBegin; a <= aEnd; a += aStep, b += bStep) {
+        local float As[BLOCK_SIZE][BLOCK_SIZE];
+        local float Bs[BLOCK_SIZE][BLOCK_SIZE];
+
+        As[ty][tx] = A[a + wA * ty + tx];
+        Bs[ty][tx] = B[b + wB * ty + tx];
+
+        As[ty+16][tx] = A[a + wA * (ty+16) + tx];
+        Bs[ty+16][tx] = B[b + wB * (ty+16) + tx];
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        #pragma unroll 32
+        for(int k = 0; k < BLOCK_SIZE; ++k) {
+            Csub[0] = fma(As[ty][k], Bs[k][tx], Csub[0]);
+            Csub[1] = fma(As[ty+16][k], Bs[k][tx], Csub[1]);
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
+    C[c + wB * ty + tx] = Csub[0];
+    C[c + wB * (ty+16) + tx] = Csub[1];
+}
+"""
+
+code_template_4 = header + r"""
+#define BLOCK_SIZE {{BLOCK_SIZE}}
+
+kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
+    int bx = get_group_id(0);
+    int by = get_group_id(1);
+
+    int tx = get_local_id(0);
+    int ty = get_local_id(1);
+
+    int aBegin = wA * BLOCK_SIZE * by;
+    int aEnd   = aBegin + wA - 1;
+    int aStep  = BLOCK_SIZE;
+    int bBegin = BLOCK_SIZE * bx;
+    int bStep  = BLOCK_SIZE * wB;
+
+    float Csub[4];
+    Csub[0] = 0;
+    Csub[1] = 0;
+    Csub[2] = 0;
+    Csub[3] = 0;
+    for (int a = aBegin, b = bBegin; a <= aEnd; a += aStep, b += bStep) {
+        local float As[BLOCK_SIZE][BLOCK_SIZE];
+        local float Bs[BLOCK_SIZE][BLOCK_SIZE];
+
+        As[ty][tx] = A[a + wA * ty + tx];
+        Bs[ty][tx] = B[b + wB * ty + tx];
+
+        As[ty+8][tx] = A[a + wA * (ty+8) + tx];
+        Bs[ty+8][tx] = B[b + wB * (ty+8) + tx];
+
+        As[ty+16][tx] = A[a + wA * (ty+16) + tx];
+        Bs[ty+16][tx] = B[b + wB * (ty+16) + tx];
+
+        As[ty+24][tx] = A[a + wA * (ty+24) + tx];
+        Bs[ty+24][tx] = B[b + wB * (ty+24) + tx];
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        #pragma unroll 32
+        for(int k = 0; k < BLOCK_SIZE; ++k) {
+            Csub[0] = fma(As[ty][k], Bs[k][tx], Csub[0]);
+            Csub[1] = fma(As[ty+8][k], Bs[k][tx], Csub[1]);
+            Csub[2] = fma(As[ty+16][k], Bs[k][tx], Csub[1]);
+            Csub[3] = fma(As[ty+24][k], Bs[k][tx], Csub[1]);
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
+    C[c + wB * ty + tx] = Csub[0];
+    C[c + wB * (ty+8) + tx] = Csub[1];
+    C[c + wB * (ty+16) + tx] = Csub[2];
+    C[c + wB * (ty+24) + tx] = Csub[3];
+}
+"""
+
+code_template_8 = header + r"""
+#define BLOCK_SIZE {{BLOCK_SIZE}}
+
+kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
+    int bx = get_group_id(0);
+    int by = get_group_id(1);
+
+    int tx = get_local_id(0);
+    int ty = get_local_id(1);
+
+    int aBegin = wA * BLOCK_SIZE * by;
+    int aEnd   = aBegin + wA - 1;
+    int aStep  = BLOCK_SIZE;
+    int bBegin = BLOCK_SIZE * bx;
+    int bStep  = BLOCK_SIZE * wB;
+
+    float Csub[{{outs}}];
+    {% for i in range(outs) %}
+        Csub[{{i}}] = 0;
+    {% endfor %}
+    for (int a = aBegin, b = bBegin; a <= aEnd; a += aStep, b += bStep) {
+        local float As[BLOCK_SIZE][BLOCK_SIZE];
+        local float Bs[BLOCK_SIZE][BLOCK_SIZE];
+
+        {% for i in range(outs) %}
+            As[ty + {{i}} * BLOCK_SIZE / {{outs}}][tx] = A[a + wA * (ty + {{i}} * BLOCK_SIZE / {{outs}}) + tx];
+            Bs[ty + {{i}} * BLOCK_SIZE / {{outs}}][tx] = B[b + wB * (ty + {{i}} * BLOCK_SIZE / {{outs}}) + tx];
+        {% endfor %}
+
+        barrier(CLK_LOCAL_MEM_FENCE);
+
+        #pragma unroll 32
+        for(int k = 0; k < BLOCK_SIZE; ++k) {
+            {% for i in range(outs) %}
+                Csub[{{i}}] = fma(As[ty + {{i}} * BLOCK_SIZE / {{outs}}][k], Bs[k][tx], Csub[{{i}}]);
+            {% endfor %}
+        }
+        barrier(CLK_LOCAL_MEM_FENCE);
+    }
+    int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
+    {% for i in range(outs) %}
+        C[c + wB * (ty + {{i}} * BLOCK_SIZE / {{outs}}) + tx] = Csub[{{i}}];
+    {% endfor %}
+}
+"""
 
 S = 1024
 blocksize=32
-name = 'mm1'
 
+experiments = [
+    {'name': 'mm1', 'code': code_template_1, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize, 1)},
+    {'name': 'mm2', 'code': code_template_2, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize//2, 1)},
+    {'name': 'mm4', 'code': code_template_4, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize//4, 1)},
+    {'name': 'mm8', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize//8, 1), 'outs': 8},
+    {'name': 'mm2b', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize//2, 1), 'outs': 2}
+]
+
+times = []
 full_occupancy_bsm = 32  # this should probably not be hard coded...
-template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
-source = template.render(kernelname='mm1', BLOCK_SIZE=blocksize)
-kernel = buildKernel(name, source)
+clearComputeCache()
+for experiment in experiments:
+    name = experiment['name']
+    template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
+    source = template.render(kernelname=name, BLOCK_SIZE=blocksize, **experiment)
+    print('source', source)
+    kernel = buildKernel(name, source)
 
-grid = (S // blocksize, S // blocksize, 1)
-block = (blocksize, blocksize, 1)
+    grid = experiment['grid']
+    block = experiment['block']
 
-#A = np.zeros((S,S), dtype=np.float32)
-#B = np.zeros((S,S), dtype=np.float32)
-C = np.zeros((S,S), dtype=np.float32)
-C_cl = cl.Buffer(lib_clgpuexp.ctx, lib_clgpuexp.mf.READ_WRITE | lib_clgpuexp.mf.COPY_HOST_PTR, hostbuf=C)
+    #A = np.zeros((S,S), dtype=np.float32)
+    #B = np.zeros((S,S), dtype=np.float32)
+    C = np.zeros((S,S), dtype=np.float32)
+    C_cl = cl.Buffer(lib_clgpuexp.ctx, lib_clgpuexp.mf.READ_WRITE | lib_clgpuexp.mf.COPY_HOST_PTR, hostbuf=C)
 
-for it in range(3):
-    t = timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
-        C_cl, S, S
-    ])
+    for it in range(2):
+        t = timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
+            C_cl, S, S
+        ])
 
-ops = S * S * S * 2
-gflops = ops / (t/1000) / 1000 / 1000 / 1000
+    t_sum = 0
+    for it in range(5):
+        t_sum += timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
+            C_cl, S, S
+        ])
+    t = t_sum / 5
 
-print('t', t, 'gflops', gflops)
+    ops = S * S * S * 2
+    gflops = ops / (t/1000) / 1000 / 1000 / 1000
+
+    # print(getPtx(name))
+    # dumpSass(name)
+
+    times.append({'name': name, 'time': t, 'gflops': gflops})
+    print('name', name, 't', t, 'gflops', gflops)
+
+print('')
+print('name time flops')
+for timeinfo in times:
+    print('%s %.1f %.1f' % (timeinfo['name'], timeinfo['time'], timeinfo['gflops']))
 
