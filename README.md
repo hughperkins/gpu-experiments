@@ -380,51 +380,15 @@ No better than blocksize 32.  For Volkov experiments, we want to be able to cont
 
 [results/occupancy_dyn_940m.tsv](results/occupancy_dyn_940m.tsv)
 
-Titan X:
-```
-name			tot ms	gflops
-k1_g1024_b32_s0        	39.0	3933
-k1_g1024_b32_s4        	13.3	5785
-k1_g1024_b32_s8        	13.1	2939
-k1_g1024_b32_s12       	13.9	1726
-k1_g1024_b32_s16       	14.5	1326
-k1_g1024_b32_s20       	13.3	1085
-k1_g1024_b32_s24       	12.0	802
-k1_g1024_b32_s28       	12.0	802
-k1_g1024_b32_s32       	17.5	547
-k1_g1024_b32_s36       	8.8	546
-k1_g1024_b32_s40       	8.8	546
-k1_g1024_b32_s44       	8.8	546
-k1_g1024_b64_s0        	33.1	4644
-k1_g1024_b64_s4        	12.4	6195
-k1_g1024_b64_s8        	6.6	5801
-k1_g1024_b64_s12       	7.0	3416
-k1_g1024_b64_s16       	7.3	2635
-k1_g1024_b64_s20       	6.7	2160
-k1_g1024_b64_s24       	6.0	1600
-k1_g1024_b64_s28       	6.0	1599
-k1_g1024_b64_s32       	8.8	1092
-k1_g1024_b64_s36       	4.4	1087
-k1_g1024_b64_s40       	4.4	1087
-k1_g1024_b64_s44       	4.4	1087
-kernel_bsm4            	23.9	804
-kernel_bsm6            	20.5	1405
-kernel_bsm8            	21.0	1825
-kernel_bsm10           	19.2	2499
-kernel_bsm12           	18.6	3099
-kernel_bsm14           	21.3	3154
-kernel_bsm16           	18.6	4122
-kernel_bsm18           	20.7	4183
-kernel_bsm20           	22.9	4190
-kernel_bsm22           	25.2	4195
-kernel_bsm24           	19.0	6070
-kernel_bsm26           	22.6	5519
-kernel_bsm28           	25.1	5344
-kernel_bsm30           	28.2	5110
-kernel_bsm32           	29.0	5292
-```
+It looks like we get the maximum at around 16 blocks per multicore, rather than 32.  Why?  Actually, the peak is for 22 blocks per multicore, which is mysterious.
 
-bsm4-32 means how many blocks per multicore processor.  On Titan X, sm5.2, each sm can hold 2048 threads, ie 64 warps.  So, we would expect to get the peak at bsm==32?  But actually the peak is weirdly at bsm==24.  I'm not sure why yet.  It is a mystery to think about :-)
+Here is the same graph for Titan X:
+
+![Occupancy, Titan X](img/occupancy_titanx.png?raw=true "Occupancy Titan X")
+
+[results/occupancy_dyn_titanx.tsv](results/occupancy_dyn_titanx.tsv)
+
+This graph looks more like what we'd expect, since it's upward floating over more or less the entire range.  However, the peak is at 24, not 32, which is strange again.  Mysterious!
 
 ## Reproduce Volkov's results
 
