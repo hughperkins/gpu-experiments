@@ -653,7 +653,7 @@ Peak at 128.  Not quite the peak, but close.
 ## Hardware used
 
 - 940M: Thinkpad T450s laptop
-- Titan X: http://nimbix.net
+- Titan X: http://nimbix.net  I'm not affiliated with nimbix, nor do I receive sponsorship from them.  I think they provide a great service, and I hope that lots of people use them, so they can be profitable and survive :-)  Per-second billing, and Titan X is a breath of fresh air after using EC2 for many months
 
 ## Theoretical limits
 
