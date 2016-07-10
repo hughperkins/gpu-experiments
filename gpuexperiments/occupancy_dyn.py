@@ -164,12 +164,12 @@ for blocks_per_sm in X:
 
 deviceNameSimple = deviceName.replace('GeForce', '').strip().lower()
 
-f = open('results/occupancy_dyn_%s.csv' % deviceNameSimple, 'w')
+f = open('results/occupancy_dyn_%s.tsv' % deviceNameSimple, 'w')
 line = 'name\ttot ms\tgflops'
 print(line)
 f.write(line + '\n')
 for time_info in times:
-    line = '%s\t%.1f\t%.0f' % (time_info['name'].ljust(23), time_info['time'], time_info.get('flops', '') / 1000 / 1000 / 1000)
+    line = '%s\t%.1f\t%.0f' % (time_info['name'], time_info['time'], time_info.get('flops', '') / 1000 / 1000 / 1000)
     print(line)
     f.write(line + '\n')
 f.close()
