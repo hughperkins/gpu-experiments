@@ -378,7 +378,7 @@ No better than blocksize 32.  For Volkov experiments, we want to be able to cont
 
 ![Occupancy, 940M](img/occupancy_940m.png?raw=true "Occupancy 940M")
 
-<img src="img/occupancy_940m.png?raw=true" width="200" height="200" />
+<img src="img/occupancy_940m.png?raw=true" width="600" height="400" />
 
 [results/occupancy_dyn_940m.tsv](results/occupancy_dyn_940m.tsv)
 
