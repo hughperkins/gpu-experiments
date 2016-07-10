@@ -109,6 +109,14 @@ def timeKernel(name, kernel, add_args=[], grid_x=1, block_x=32):
     return timecheck(name)
     # print(getPtx('mykernel'))
 
+def timeKernel3d(name, kernel, add_args=[], grid=(1,1,1), block=(32,1,1)):
+    q.finish()
+    inittime()
+    call_cl_kernel(kernel, q, grid, block, d_cl, out_cl, *add_args)
+    q.finish()
+    return timecheck(name)
+    # print(getPtx('mykernel'))
+
 def buildKernel(name, source, options=''):
     # options = '-cl-opt-disable'
     #if name in optimized:

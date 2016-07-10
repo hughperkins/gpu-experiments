@@ -18,7 +18,7 @@ from gpuexperiments.callkernel import call_cl_kernel
 #import gpuexperiments.cpu_check
 from gpuexperiments.timecheck import inittime, timecheck
 import lib_clgpuexp
-from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
+from lib_clgpuexp import clearComputeCache, getPtx, timeKernel3d, buildKernel, initClGpu
 
 
 initClGpu()
@@ -101,7 +101,7 @@ kernel void {{kernelname}} (global float *C, global float *A, global float *B, i
         Bs[ty][tx] = B[b + wB * ty + tx];
         barrier(CLK_LOCAL_MEM_FENCE);
 
-        #pragma unroll
+        #pragma unroll 32
         for(int k = 0; k < BLOCK_SIZE; ++k) {
             Csub += As[ty][k] * Bs[k][tx];
         }
@@ -116,20 +116,30 @@ experiments = [
     #{'name': 'memcpy_ilp1_float_bsm{bsm}', 'code': code_template, 'ilp': 1, 'type': 'float'},
 ]
 
-full_occupancy_bsm = 32  # this should probably not be hard coded...
-for experiment in experiments:
-    template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
-    bandwidth_gib = grid * block * experiment['ilp'] * 2 * typeSize / (t/1000) / 1024 / 1024 / 1024
-    print('bandwidth_gib', bandwidth_gib)
-    times.append({'name': name, 'time': t, 'bandwidth_gib': bandwidth_gib})
+S = 1024
+blocksize=32
+name = 'mm1'
 
-f = open('/tmp/volkov_mm_%s.tsv' % deviceSimpleName, 'w')
-line = 'name\ttot ms\tbw gib'
-print(line)
-f.write(line + '\n')
-for time_info in times:
-    line = '%s\t%.1f\t%.2f' % (time_info['name'], time_info['time'], time_info['bandwidth_gib'])
-    print(line)
-    f.write(line + '\n')
-f.close()
+full_occupancy_bsm = 32  # this should probably not be hard coded...
+template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
+source = template.render(kernelname='mm1', BLOCK_SIZE=blocksize)
+kernel = buildKernel(name, source)
+
+grid = (S // blocksize, S // blocksize, 1)
+block = (blocksize, blocksize, 1)
+
+#A = np.zeros((S,S), dtype=np.float32)
+#B = np.zeros((S,S), dtype=np.float32)
+C = np.zeros((S,S), dtype=np.float32)
+C_cl = cl.Buffer(lib_clgpuexp.ctx, lib_clgpuexp.mf.READ_WRITE | lib_clgpuexp.mf.COPY_HOST_PTR, hostbuf=C)
+
+for it in range(3):
+    t = timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
+        C_cl, S, S
+    ])
+
+ops = S * S * S * 2
+gflops = ops / (t/1000) / 1000 / 1000 / 1000
+
+print('t', t, 'gflops', gflops)
 
