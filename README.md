@@ -199,7 +199,7 @@ This is not part of Volkov's slides, but seems to naturally fit into this sectio
 
 [gpuexperiments/volkov_mm_batched.py](gpuexperiments/volkov_mm_batched.py)
 
-<img src="img/volkov_mm_batched_940m.png?raw=true" width="600" height="400" />
+<img src="img/volkov_mm_batched_940mb.png?raw=true" width="600" height="400" />
 
 [results/volkov_mm_batched_940m.tsv](results/volkov_mm_batched_940m.tsv)
 
