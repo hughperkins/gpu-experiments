@@ -217,10 +217,10 @@ for experiment in experiments:
         times.append({'name': name, 'time': t, 'gflops': gflops})
         print('name', name, 't', t, 'gflops', gflops)
 
-        if S <= 256:
+        if S <= 128:
             S *= 2
         else:
-            S += 256
+            S += 128
 
 f = open('/tmp/volkov_mm_%s.tsv' % deviceSimpleName, 'w')
 print('')
