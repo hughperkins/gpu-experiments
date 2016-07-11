@@ -189,6 +189,8 @@ For Titan X, we get benefit of ilp all the way up to ilp==8.  For ilp 6 and 8, t
 
 [results/volkov_mm_940m.tsv](results/volkov_mm_940m.tsv)
 
+We can see that larger matrices give higher flops.  But there is a sweet spot, somewhere around a matrix size of ~512.  This corresponds to ~1MB per input matrix, or about 2MB for the combined input matrices.  This sounds comparable in size to L2 cache perhaps?
+
 ## Context, theoretical limits
 
 ### Hardware used
