@@ -219,6 +219,24 @@ For batched, ops = 1024 * 32 * 32 * 32 * 2 ~= 6e7
 
 Therefore, the ratio of ops to memory transfer is about 33 times less for batched than non-batched, given equivalent input size, in number of floats, in both cases.
 
+Let's calculate the maximum theoretical flops, given the physical limitations on global memory bandwidth, and assume that in the best case we will load the contents of A and B exactly once, and store C exactly once.
+
+```
+Total data transfer = (1024 * 32 * 32 * 4) * 3 /1024/1024/1024 GiB
+= 0.0117GiB
+Time to transfer 0.0117GiB = 0.0117 / 14.40 = 0.000813seconds
+Therefore maximum flops = operations / 0.000813
+= 1024 * 32 * 32 * 32 * 2 / 0.000813 / 1000/1000/1000 GFLOPS/second
+= 6.71e7 / 0.000813/1e9 GFLOPS/second
+= 82 GFLOPS/seconds
+```
+Looks like we have reached maximum theoretical flops for this scenario.  We should choose a more interesting scenario.
+
+I think a more interesting scenario is something like:
+- we have 100 A matrices
+- 100 B matrices
+- need to calcualte 100x100 C matrices, one for each possible A/B pair
+
 ## Context, theoretical limits
 
 ### Hardware used
