@@ -206,17 +206,15 @@ This is not part of Volkov's slides, but seems to naturally fit into this sectio
 The flops are about 3 times lower than that of non-batched GEMM, even for large batch sizes.  For large matrix sizes, the number of outputs per thread makes little difference in flops.  At smaller bath sizes, increasing the outputs increases flops, but 32 outputs per thread is actually the slowest.
 
 Note that the size of A and B are comparable, for batchsize 1024, versus matrix size 1024.  Compare:
-
+```
 A for matrix size 1024 = 1024 * 1024 ~= 1e6 floats
-
 A for batch size 1024, with 32x32 matrices = 1024 * 32 *32 ~= 1e6 floats
-
+```
 Compare the ops in batched and non-batched
-
+```
 For non-batched, ops = 1024 * 1024 * 1024 * 2 ~= 2e9
-
 For batched, ops = 1024 * 32 * 32 * 32 * 2 ~= 6e7
-
+```
 Therefore, the ratio of ops to memory transfer is about 33 times less for batched than non-batched, given equivalent input size, in number of floats, in both cases.
 
 Let's calculate the maximum theoretical flops, given the physical limitations on global memory bandwidth, and assume that in the best case we will load the contents of A and B exactly once, and store C exactly once.
