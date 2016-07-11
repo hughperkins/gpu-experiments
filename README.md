@@ -245,6 +245,16 @@ therefore, maximum flops = 6.554e8 / 0.00290 / 1e9 gigaflops/second
 ```
 Still not ideal, but better.  It looks like the time to save the result matrices back up is not inconsiderable.
 
+What about 1024 A matrices, and 1024 B matrices?
+```
+data transfer = (1024 * 32 * 32 * 4) * 2 + 1024*1024*32*32*4 = 4.303e9 bytes
+time to transfer = 4.303e9 / 14.40e9 = 0.299seconds
+operations = 32*32*32*2*1024*1024 = 6.872e10 operations
+therefore, maximum flops = 6.872e10 / 0.299 / 1e9 gigaflops/second
+= 229 gigaflops/second
+```
+Same
+
 ## Context, theoretical limits
 
 ### Hardware used
