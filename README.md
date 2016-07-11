@@ -197,7 +197,7 @@ We can see that larger matrices give higher flops.  But there is a sweet spot, s
 
 This is not part of Volkov's slides, but seems to naturally fit into this section.  Or I might create a new section sometime.  Here, I am using only 32x32 matrices, but we can multiply a batch of pairs of such matrices in one kernel launch, and look at the resulting flops.
 
-[gpuexperiments/volkov_mm.py](gpuexperiments/volkov_mm_batched.py)
+[gpuexperiments/volkov_mm_batched.py](gpuexperiments/volkov_mm_batched.py)
 
 <img src="img/volkov_mm_batched_940m.png?raw=true" width="600" height="400" />
 
