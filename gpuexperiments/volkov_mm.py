@@ -79,145 +79,10 @@ header = r"""
 // contains source code provided by NVIDIA Corporation."
 """
 
-code_template_1 = header + r"""
-#define BLOCK_SIZE {{BLOCK_SIZE}}
-
-kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
-    int bx = get_group_id(0);
-    int by = get_group_id(1);
-
-    int tx = get_local_id(0);
-    int ty = get_local_id(1);
-
-    int aBegin = wA * BLOCK_SIZE * by;
-    int aEnd   = aBegin + wA - 1;
-    int aStep  = BLOCK_SIZE;
-    int bBegin = BLOCK_SIZE * bx;
-    int bStep  = BLOCK_SIZE * wB;
-
-    float Csub = 0;
-    for (int a = aBegin, b = bBegin; a <= aEnd; a += aStep, b += bStep) {
-        local float As[BLOCK_SIZE][BLOCK_SIZE];
-        local float Bs[BLOCK_SIZE][BLOCK_SIZE];
-
-        As[ty][tx] = A[a + wA * ty + tx];
-        Bs[ty][tx] = B[b + wB * ty + tx];
-        barrier(CLK_LOCAL_MEM_FENCE);
-
-        #pragma unroll 32
-        for(int k = 0; k < BLOCK_SIZE; ++k) {
-            // Csub += As[ty][k] * Bs[k][tx];
-            Csub = fma(As[ty][k], Bs[k][tx], Csub);
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
-    C[c + wB * ty + tx] = Csub;
-}
-"""
-
-code_template_2 = header + r"""
-#define BLOCK_SIZE {{BLOCK_SIZE}}
-
-kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
-    int bx = get_group_id(0);
-    int by = get_group_id(1);
-
-    int tx = get_local_id(0);
-    int ty = get_local_id(1);
-
-    int aBegin = wA * BLOCK_SIZE * by;
-    int aEnd   = aBegin + wA - 1;
-    int aStep  = BLOCK_SIZE;
-    int bBegin = BLOCK_SIZE * bx;
-    int bStep  = BLOCK_SIZE * wB;
-
-    float Csub[2];
-    Csub[0] = 0;
-    Csub[1] = 0;
-    for (int a = aBegin, b = bBegin; a <= aEnd; a += aStep, b += bStep) {
-        local float As[BLOCK_SIZE][BLOCK_SIZE];
-        local float Bs[BLOCK_SIZE][BLOCK_SIZE];
-
-        As[ty][tx] = A[a + wA * ty + tx];
-        Bs[ty][tx] = B[b + wB * ty + tx];
-
-        As[ty+16][tx] = A[a + wA * (ty+16) + tx];
-        Bs[ty+16][tx] = B[b + wB * (ty+16) + tx];
-        barrier(CLK_LOCAL_MEM_FENCE);
-
-        #pragma unroll 32
-        for(int k = 0; k < BLOCK_SIZE; ++k) {
-            Csub[0] = fma(As[ty][k], Bs[k][tx], Csub[0]);
-            Csub[1] = fma(As[ty+16][k], Bs[k][tx], Csub[1]);
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
-    C[c + wB * ty + tx] = Csub[0];
-    C[c + wB * (ty+16) + tx] = Csub[1];
-}
-"""
-
-code_template_4 = header + r"""
-#define BLOCK_SIZE {{BLOCK_SIZE}}
-
-kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
-    int bx = get_group_id(0);
-    int by = get_group_id(1);
-
-    int tx = get_local_id(0);
-    int ty = get_local_id(1);
-
-    int aBegin = wA * BLOCK_SIZE * by;
-    int aEnd   = aBegin + wA - 1;
-    int aStep  = BLOCK_SIZE;
-    int bBegin = BLOCK_SIZE * bx;
-    int bStep  = BLOCK_SIZE * wB;
-
-    float Csub[4];
-    Csub[0] = 0;
-    Csub[1] = 0;
-    Csub[2] = 0;
-    Csub[3] = 0;
-    for (int a = aBegin, b = bBegin; a <= aEnd; a += aStep, b += bStep) {
-        local float As[BLOCK_SIZE][BLOCK_SIZE];
-        local float Bs[BLOCK_SIZE][BLOCK_SIZE];
-
-        As[ty][tx] = A[a + wA * ty + tx];
-        Bs[ty][tx] = B[b + wB * ty + tx];
-
-        As[ty+8][tx] = A[a + wA * (ty+8) + tx];
-        Bs[ty+8][tx] = B[b + wB * (ty+8) + tx];
-
-        As[ty+16][tx] = A[a + wA * (ty+16) + tx];
-        Bs[ty+16][tx] = B[b + wB * (ty+16) + tx];
-
-        As[ty+24][tx] = A[a + wA * (ty+24) + tx];
-        Bs[ty+24][tx] = B[b + wB * (ty+24) + tx];
-        barrier(CLK_LOCAL_MEM_FENCE);
-
-        #pragma unroll 32
-        for(int k = 0; k < BLOCK_SIZE; ++k) {
-            Csub[0] = fma(As[ty][k], Bs[k][tx], Csub[0]);
-            Csub[1] = fma(As[ty+8][k], Bs[k][tx], Csub[1]);
-            Csub[2] = fma(As[ty+16][k], Bs[k][tx], Csub[1]);
-            Csub[3] = fma(As[ty+24][k], Bs[k][tx], Csub[1]);
-        }
-        barrier(CLK_LOCAL_MEM_FENCE);
-    }
-    int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
-    C[c + wB * ty + tx] = Csub[0];
-    C[c + wB * (ty+8) + tx] = Csub[1];
-    C[c + wB * (ty+16) + tx] = Csub[2];
-    C[c + wB * (ty+24) + tx] = Csub[3];
-}
-"""
-
 code_template_8 = header + r"""
 #define BLOCK_SIZE {{BLOCK_SIZE}}
 
-kernel void {{kernelname}} (global float *C, global float *A, global float *B, int wA, int wB) {
+kernel void {{kernelname}} (global float *A, global float *B, global float *C, int wA, int wB) {
     int bx = get_group_id(0);
     int by = get_group_id(1);
 
@@ -264,17 +129,22 @@ S = 1024
 blocksize=32
 
 experiments = [
-    {'name': 'mm1', 'code': code_template_1, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize, 1)},
-    {'name': 'mm2', 'code': code_template_2, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize//2, 1)},
-    {'name': 'mm4', 'code': code_template_4, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize//4, 1)},
+    {'name': 'mm1', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize, 1), 'outs': 1},
+    {'name': 'mm2', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize//2, 1), 'outs': 2},
+    {'name': 'mm4', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
+     'block': (blocksize, blocksize//4, 1), 'outs': 4},
     {'name': 'mm8', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize//8, 1), 'outs': 8},
-    {'name': 'mm2b', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize//2, 1), 'outs': 2}
+     'block': (blocksize, blocksize//8, 1), 'outs': 8}
+#    {'name': 'mm2b', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
+ #    'block': (blocksize, blocksize//2, 1), 'outs': 2}
 ]
+
+cl = lib_clgpuexp.cl
+ctx = lib_clgpuexp.ctx
+q = lib_clgpuexp.q
+mf = lib_clgpuexp.mf
 
 times = []
 full_occupancy_bsm = 32  # this should probably not be hard coded...
@@ -283,7 +153,7 @@ for experiment in experiments:
     name = experiment['name']
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
     source = template.render(kernelname=name, BLOCK_SIZE=blocksize, **experiment)
-    print('source', source)
+    # print('source', source)
     kernel = buildKernel(name, source)
 
     grid = experiment['grid']
@@ -291,6 +161,18 @@ for experiment in experiments:
 
     #A = np.zeros((S,S), dtype=np.float32)
     #B = np.zeros((S,S), dtype=np.float32)
+    lib_clgpuexp.d = np.zeros((S,S), dtype=np.float32)
+    d = lib_clgpuexp.d
+    d[:] = np.random.rand(d.size).reshape(S,S) - 0.5
+    lib_clgpuexp.d_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=d)
+    A = d.reshape(S,S)
+
+    lib_clgpuexp.out = np.zeros((S,S), dtype=np.float32)
+    out = lib_clgpuexp.out
+    out[:] = np.random.rand(out.size).reshape(S,S) - 0.5
+    lib_clgpuexp.out_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=out)
+    B = out.reshape(S,S)
+
     C = np.zeros((S,S), dtype=np.float32)
     C_cl = cl.Buffer(lib_clgpuexp.ctx, lib_clgpuexp.mf.READ_WRITE | lib_clgpuexp.mf.COPY_HOST_PTR, hostbuf=C)
 
@@ -308,6 +190,30 @@ for experiment in experiments:
 
     ops = S * S * S * 2
     gflops = ops / (t/1000) / 1000 / 1000 / 1000
+
+    cl.enqueue_copy(q, C, C_cl)
+    q.finish()
+    print(C[0,:10])
+    print(A.dot(B)[0,:10])
+
+    C_cpu = A.dot(B)
+    cpu_samples = ''
+    gpu_samples = ''
+    diffs = ''
+    for sample in range(20):
+        x = random.randint(0, S - 1)
+        y = random.randint(0, S - 1)
+        c_gpu = C[x,y]
+        c_local = C_cpu[x,y]
+        diff = abs(c_gpu - c_local)
+        cpu_samples += ' %.4f' % c_local
+        gpu_samples += ' %.4f' % c_gpu
+        diffs += ' %.5f' % diff
+        # print(c_gpu, c_local, diff)
+        assert diff < 1e-4
+    print('cpu', cpu_samples)
+    print('gpu', gpu_samples)
+    print('diffs', diffs)
 
     # print(getPtx(name))
     # dumpSass(name)
