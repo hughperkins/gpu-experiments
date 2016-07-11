@@ -181,6 +181,14 @@ For Titan X, we get benefit of ilp all the way up to ilp==8.  For ilp 6 and 8, t
 
 [results/volkov_memcpy_940m.tsv](results/volkov_memcpy_940m.tsv)
 
+### Matrix multiplication, vary outputs per thread
+
+[gpuexperiments/volkov_mm.py](gpuexperiments/volkov_mm.py)
+
+<img src="img/volkov_mm_940m.png?raw=true" width="600" height="400" />
+
+[results/volkov_mm_940m.tsv](results/volkov_mm_940m.tsv)
+
 ## Context, theoretical limits
 
 ### Hardware used

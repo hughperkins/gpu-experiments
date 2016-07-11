@@ -125,20 +125,14 @@ kernel void {{kernelname}} (global float *A, global float *B, global float *C, i
 }
 """
 
-S = 1024
+# S = 1024
 blocksize=32
 
 experiments = [
-    {'name': 'mm1', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize, 1), 'outs': 1},
-    {'name': 'mm2', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize//2, 1), 'outs': 2},
-    {'name': 'mm4', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize//4, 1), 'outs': 4},
-    {'name': 'mm8', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
-     'block': (blocksize, blocksize//8, 1), 'outs': 8}
-#    {'name': 'mm2b', 'code': code_template_8, 'grid': (S//blocksize, S//blocksize, 1),
- #    'block': (blocksize, blocksize//2, 1), 'outs': 2}
+    {'name': 'mm1_s{S}', 'code': code_template_8, 'block': (blocksize, blocksize, 1), 'outs': 1},
+    {'name': 'mm2_s{S}', 'code': code_template_8, 'block': (blocksize, blocksize//2, 1), 'outs': 2},
+    {'name': 'mm4_s{S}', 'code': code_template_8, 'block': (blocksize, blocksize//4, 1), 'outs': 4},
+    {'name': 'mm8_s{S}', 'code': code_template_8, 'block': (blocksize, blocksize//8, 1), 'outs': 8}
 ]
 
 cl = lib_clgpuexp.cl
@@ -150,79 +144,92 @@ times = []
 full_occupancy_bsm = 32  # this should probably not be hard coded...
 clearComputeCache()
 for experiment in experiments:
-    name = experiment['name']
-    template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
-    source = template.render(kernelname=name, BLOCK_SIZE=blocksize, **experiment)
-    # print('source', source)
-    kernel = buildKernel(name, source)
+    S = 32
+    while S <= 1024:
+        name = experiment['name'].format(S=S)
+        template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
+        source = template.render(kernelname=name, BLOCK_SIZE=blocksize, **experiment)
+        # print('source', source)
+        kernel = buildKernel(name, source)
 
-    grid = experiment['grid']
-    block = experiment['block']
+        grid = (S//blocksize, S//blocksize, 1)
+        block = experiment['block']
 
-    #A = np.zeros((S,S), dtype=np.float32)
-    #B = np.zeros((S,S), dtype=np.float32)
-    lib_clgpuexp.d = np.zeros((S,S), dtype=np.float32)
-    d = lib_clgpuexp.d
-    d[:] = np.random.rand(d.size).reshape(S,S) - 0.5
-    lib_clgpuexp.d_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=d)
-    A = d.reshape(S,S)
+        #A = np.zeros((S,S), dtype=np.float32)
+        #B = np.zeros((S,S), dtype=np.float32)
+        lib_clgpuexp.d = np.zeros((S,S), dtype=np.float32)
+        d = lib_clgpuexp.d
+        d[:] = np.random.rand(d.size).reshape(S,S) - 0.5
+        lib_clgpuexp.d_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=d)
+        A = d.reshape(S,S)
 
-    lib_clgpuexp.out = np.zeros((S,S), dtype=np.float32)
-    out = lib_clgpuexp.out
-    out[:] = np.random.rand(out.size).reshape(S,S) - 0.5
-    lib_clgpuexp.out_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=out)
-    B = out.reshape(S,S)
+        lib_clgpuexp.out = np.zeros((S,S), dtype=np.float32)
+        out = lib_clgpuexp.out
+        out[:] = np.random.rand(out.size).reshape(S,S) - 0.5
+        lib_clgpuexp.out_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=out)
+        B = out.reshape(S,S)
 
-    C = np.zeros((S,S), dtype=np.float32)
-    C_cl = cl.Buffer(lib_clgpuexp.ctx, lib_clgpuexp.mf.READ_WRITE | lib_clgpuexp.mf.COPY_HOST_PTR, hostbuf=C)
+        C = np.zeros((S,S), dtype=np.float32)
+        C_cl = cl.Buffer(lib_clgpuexp.ctx, lib_clgpuexp.mf.READ_WRITE | lib_clgpuexp.mf.COPY_HOST_PTR, hostbuf=C)
 
-    for it in range(2):
-        t = timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
-            C_cl, S, S
-        ])
+        for it in range(2):
+            t = timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
+                C_cl, S, S
+            ])
 
-    t_sum = 0
-    for it in range(5):
-        t_sum += timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
-            C_cl, S, S
-        ])
-    t = t_sum / 5
+        t_sum = 0
+        for it in range(5):
+            t_sum += timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
+                C_cl, S, S
+            ])
+        t = t_sum / 5
 
-    ops = S * S * S * 2
-    gflops = ops / (t/1000) / 1000 / 1000 / 1000
+        ops = S * S * S * 2
+        gflops = ops / (t/1000) / 1000 / 1000 / 1000
 
-    cl.enqueue_copy(q, C, C_cl)
-    q.finish()
-    print(C[0,:10])
-    print(A.dot(B)[0,:10])
+        cl.enqueue_copy(q, C, C_cl)
+        q.finish()
+        print(C[0,:10])
+        print(A.dot(B)[0,:10])
 
-    C_cpu = A.dot(B)
-    cpu_samples = ''
-    gpu_samples = ''
-    diffs = ''
-    for sample in range(20):
-        x = random.randint(0, S - 1)
-        y = random.randint(0, S - 1)
-        c_gpu = C[x,y]
-        c_local = C_cpu[x,y]
-        diff = abs(c_gpu - c_local)
-        cpu_samples += ' %.4f' % c_local
-        gpu_samples += ' %.4f' % c_gpu
-        diffs += ' %.5f' % diff
-        # print(c_gpu, c_local, diff)
-        assert diff < 1e-4
-    print('cpu', cpu_samples)
-    print('gpu', gpu_samples)
-    print('diffs', diffs)
+        C_cpu = A.dot(B)
+        cpu_samples = ''
+        gpu_samples = ''
+        diffs = ''
+        for sample in range(20):
+            x = random.randint(0, S - 1)
+            y = random.randint(0, S - 1)
+            c_gpu = C[x,y]
+            c_local = C_cpu[x,y]
+            diff = abs(c_gpu - c_local)
+            cpu_samples += ' %.4f' % c_local
+            gpu_samples += ' %.4f' % c_gpu
+            diffs += ' %.5f' % diff
+            # print(c_gpu, c_local, diff)
+            assert diff < 1e-4
+        print('cpu', cpu_samples)
+        print('gpu', gpu_samples)
+        print('diffs', diffs)
 
-    # print(getPtx(name))
-    # dumpSass(name)
+        # print(getPtx(name))
+        # dumpSass(name)
 
-    times.append({'name': name, 'time': t, 'gflops': gflops})
-    print('name', name, 't', t, 'gflops', gflops)
+        times.append({'name': name, 'time': t, 'gflops': gflops})
+        print('name', name, 't', t, 'gflops', gflops)
 
+        if S <= 256:
+            S *= 2
+        else:
+            S += 256
+
+f = open('/tmp/volkov_mm_%s.tsv' % deviceSimpleName, 'w')
 print('')
-print('name time flops')
+line = 'name\ttime\tflops'
+print(line)
+f.write(line + '\n')
 for timeinfo in times:
-    print('%s %.1f %.1f' % (timeinfo['name'], timeinfo['time'], timeinfo['gflops']))
+    line = '%s\t%.1f\t%.1f' % (timeinfo['name'], timeinfo['time'], timeinfo['gflops'])
+    print(line)
+    f.write(line + '\n')
+f.close()
 
