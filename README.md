@@ -189,7 +189,33 @@ For Titan X, we get benefit of ilp all the way up to ilp==8.  For ilp 6 and 8, t
 
 [results/volkov_mm_940m.tsv](results/volkov_mm_940m.tsv)
 
+Drawing a graph with respect to matrix size is not strictly part of the Volkov slides, but I think it's a natural extension of how the earlier graphs work, and quite interesting.
+
 We can see that larger matrices give higher flops.  But there is a sweet spot, somewhere around a matrix size of ~512.  This corresponds to ~1MB per input matrix, or about 2MB for the combined input matrices.  This sounds comparable in size to L2 cache perhaps?
+
+### Matrix multiplication, batched
+
+This is not part of Volkov's slides, but seems to naturally fit into this section.  Or I might create a new section sometime.  Here, I am using only 32x32 matrices, but we can multiply a batch of pairs of such matrices in one kernel launch, and look at the resulting flops.
+
+[gpuexperiments/volkov_mm.py](gpuexperiments/volkov_mm_batched.py)
+
+<img src="img/volkov_mm_batched_940m.png?raw=true" width="600" height="400" />
+
+[results/volkov_mm_batched_940m.tsv](results/volkov_mm_batched_940m.tsv)
+
+The flops are about 3 times lower than that of non-batched GEMM, even for large batch sizes.  Note that the size of A and B are comparable.  Compare:
+
+A for matrix size 1024 = 1024 * 1024 ~= 1e6 floats
+
+A for batch size 1024, with 32x32 matrices = 1024 * 32 *32 ~= 1e6 floats
+
+Compare the ops in batched and non-batched
+
+For non-batched, ops = 1024 * 1024 * 1024 * 2 ~= 2e9
+
+For batched, ops = 1024 * 32 * 32 * 32 * 2 ~= 6e7
+
+Therefore, the ratio of ops to memory transfer is about 33 times less for batched than non-batched, given equivalent input size, in number of floats, in both cases.
 
 ## Context, theoretical limits
 
