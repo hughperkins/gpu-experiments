@@ -235,6 +235,16 @@ I think a more interesting scenario is something like:
 - 100 B matrices
 - need to calcualte 100x100 C matrices, one for each possible A/B pair
 
+In this case, maximum theoretical flops, based on bandwidth:
+```
+data transfer = (100 * 32 * 32 * 4) * 2 + 100*100*32*32*4 = 4.178e7bytes
+time to transfer = 4.178e7 / 14.40e9 = 0.00290seconds
+operations = 32*32*32*2*100*100 = 6.554e8 ops
+therefore, maximum flops = 6.554e8 / 0.00290 / 1e9 gigaflops/second
+= 226gigaflops/second
+```
+Still not ideal, but better.  It looks like the time to save the result matrices back up is not inconsiderable.
+
 ## Context, theoretical limits
 
 ### Hardware used
