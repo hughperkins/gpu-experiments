@@ -134,7 +134,8 @@ experiments = [
     {'name': 'mm1_b{batchsize}', 'code': code_template_8, 'block': (blocksize, blocksize, 1), 'outs': 1},
     {'name': 'mm2_b{batchsize}', 'code': code_template_8, 'block': (blocksize, blocksize//2, 1), 'outs': 2},
     {'name': 'mm4_b{batchsize}', 'code': code_template_8, 'block': (blocksize, blocksize//4, 1), 'outs': 4},
-    {'name': 'mm8_b{batchsize}', 'code': code_template_8, 'block': (blocksize, blocksize//8, 1), 'outs': 8}
+    {'name': 'mm8_b{batchsize}', 'code': code_template_8, 'block': (blocksize, blocksize//8, 1), 'outs': 8},
+    {'name': 'mm32_b{batchsize}', 'code': code_template_8, 'block': (blocksize, blocksize//32, 1), 'outs': 32}
 ]
 
 cl = lib_clgpuexp.cl
@@ -180,11 +181,13 @@ for experiment in experiments:
             ])
 
         t_sum = 0
-        for it in range(5):
+        its = 100
+        its *= (1024 // batchsize)
+        for it in range(its):
             t_sum += timeKernel3d(name, kernel, grid=grid, block=block, add_args=[
                 C_cl
             ])
-        t = t_sum / 5
+        t = t_sum / its
 
         # ops = S * S * S * 2
         ops = S * S * S * 2 * batchsize

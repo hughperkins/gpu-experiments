@@ -203,7 +203,9 @@ This is not part of Volkov's slides, but seems to naturally fit into this sectio
 
 [results/volkov_mm_batched_940m.tsv](results/volkov_mm_batched_940m.tsv)
 
-The flops are about 3 times lower than that of non-batched GEMM, even for large batch sizes.  Note that the size of A and B are comparable.  Compare:
+The flops are about 3 times lower than that of non-batched GEMM, even for large batch sizes.  For large matrix sizes, the number of outputs per thread makes little difference in flops.  At smaller bath sizes, increasing the outputs increases flops, but 32 outputs per thread is actually the slowest.
+
+Note that the size of A and B are comparable, for batchsize 1024, versus matrix size 1024.  Compare:
 
 A for matrix size 1024 = 1024 * 1024 ~= 1e6 floats
 
