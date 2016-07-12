@@ -77,7 +77,8 @@ experiments = [
     {'name': 'memcpy_l1_stride2_ilp1_float_bsm{bsm}', 'code': code_template_layout2, 'ilp': 1, 'type': 'float', 'stride': 2},
     {'name': 'memcpy_l1_stride3_ilp1_float_bsm{bsm}', 'code': code_template_layout2, 'ilp': 1, 'type': 'float', 'stride': 3},
     {'name': 'memcpy_l1_stride4_ilp1_float_bsm{bsm}', 'code': code_template_layout2, 'ilp': 1, 'type': 'float', 'stride': 4},
-    {'name': 'memcpy_l1_stride8_ilp1_float_bsm{bsm}', 'code': code_template_layout2, 'ilp': 1, 'type': 'float', 'stride': 8}
+    {'name': 'memcpy_l1_stride8_ilp1_float_bsm{bsm}', 'code': code_template_layout2, 'ilp': 1, 'type': 'float', 'stride': 8},
+    {'name': 'memcpy_l1_stride16_ilp1_float_bsm{bsm}', 'code': code_template_layout2, 'ilp': 1, 'type': 'float', 'stride': 16}
     #{'name': 'memcpy_l2_stride2_ilp1_float_bsm{bsm}', 'code': code_template_layout2, 'ilp': 1, 'type': 'float', 'stride': 2},
 ]
 
