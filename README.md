@@ -8,7 +8,7 @@ Approximate target kernel I'm pondering as I write this https://github.com/hughp
 
 Terminology will be interchangeably cuda/opencl.  Experiments will run on different devices.  Where not specified, they are running on NVIDIA 940M, which is a Maxwell.
 
-## Ad-hoc questions
+## Basics
 
 ### Effect of optimization on performance?
 
@@ -209,9 +209,11 @@ For Titan X:
 
 [results/volkov_mm_titanx.tsv](results/volkov_mm_titanx.tsv)
 
+## Winograd-specific experiments
+
 ### Matrix multiplication, batched
 
-This is not part of Volkov's slides, but seems to naturally fit into this section.  Or I might create a new section sometime.  Here, I am using only 32x32 matrices, but we can multiply a batch of pairs of such matrices in one kernel launch, and look at the resulting flops.
+This section was originally organized under the 'volkov' section above, since it is derived from the final matrix multiplication experiment.  It's not part of his slides though, and doesnt really fit into the story he was telling particularly well either.  It is part of my experiments into Winograd kernels, and belongs in this new section.  Prorbably.
 
 [gpuexperiments/volkov_mm_batched.py](gpuexperiments/volkov_mm_batched.py)
 
