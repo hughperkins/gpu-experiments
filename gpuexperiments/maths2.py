@@ -20,6 +20,7 @@ from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, ini
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--printptx', type=bool, default=False)
+parser.add_argument('--exp')
 args = parser.parse_args()
 
 initClGpu()
@@ -27,7 +28,7 @@ deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
 deviceSimpleName = deviceName.replace('GeForce', '').replace('GTX', '').strip().replace(' ', '').lower()
 
 template = r"""
-    kernel void {{name}}(global {{type}} *data, global {{type}} *out) {
+    kernel void {{kernelname}}(global {{type}} *data, global {{type}} *out) {
         {{type}} a = data[0];
         {{type}} b = data[1];
         {{type}} c = data[2];
@@ -36,6 +37,24 @@ template = r"""
             a = {{op}};
         }
         out[0] = a;
+    }
+"""
+
+template_rand = r"""
+    kernel void {{kernelname}}(global {{type}} *data, global {{type}} *out) {
+        {{type}} a = data[0];
+        {{type}} b = data[1];
+        {{type}} c = data[2];
+        {{type}} d = 0;
+        #pragma unroll {{unroll}}
+        for(int i = 0; i < {{its}}; i++) {
+            //a = {{op}};
+            a = (a * c) >> 2;
+            // d += b;
+            {{op}};
+        }
+        out[0] = a;
+        out[1] = d;
     }
 """
 
@@ -50,27 +69,42 @@ experiments = [
     {'name': '{type}_tanh', 'op': 'tanh(a)', 'type': 'float', 'code': template, 'ops': 1},
 
     {'name': '{type}_mul', 'op': 'a * b', 'type': 'int', 'code': template, 'ops': 1},
-    {'name': '{type}_div', 'op': 'a / b', 'type': 'int', 'code': template, 'ops': 1}
-#    {'name': '{type}_add', 'op': 'a + b', 'type': 'int', 'code': template, 'ops': 1},
+    {'name': '{type}_div', 'op': 'a / b', 'type': 'int', 'code': template, 'ops': 1},
+    {'name': '{type}_randbase', 'op': '', 'type': 'int', 'code': template_rand, 'ops': 0},
+    {'name': '{type}_randbase_add', 'op': 'a = a + b', 'type': 'int', 'code': template_rand, 'ops': 1},
+    {'name': '{type}_randbase_sub', 'op': 'a = a - b', 'type': 'int', 'code': template_rand, 'ops': 1},
+    {'name': '{type}_randbase_mul', 'op': 'a = a * b', 'type': 'int', 'code': template_rand, 'ops': 1},
+    {'name': '{type}_randbase_div', 'op': 'a = a / b', 'type': 'int', 'code': template_rand, 'ops': 1},
+    {'name': '{type}_randbase_shift', 'op': 'a = a << b', 'type': 'int', 'code': template_rand, 'ops': 1},
+    #{'name': '{type}_randbase_shiftshiftadd', 'op': 'a = (a << b) + (a << c)', 'type': 'int', 'code': template, 'ops': 1}
+    #{'name': '{type}_shiftshiftadd', 'op': '(a << 2) + (a <<1 )', 'type': 'int', 'code': template, 'ops': 1}
+    #{'name': '{type}_add', 'op': 'a + b; a = a + c', 'type': 'int', 'code': template, 'ops': 2},
 #    {'name': '{type}_sub', 'op': 'a - b', 'type': 'int', 'code': template, 'ops': 1}
 ]
 
 times = []
-unroll = 256
+unroll = 128
 block = 32
-its = (10000000 // unroll) * unroll
 for experiment in experiments:
+    if args.exp is not None and args.exp not in experiment['name']:
+        continue
     name = experiment['name'].format(**experiment)
     print('name', name)
+    its = 10000000
+    divider = 1
+    if name in ['int_div', 'float_tanh', 'int_randbase_div']:
+        divider = 30
+        its //= divider
+    its = (its // unroll) * unroll
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
     if args.printptx:
         clearComputeCache()
-    template_dict = {}
-    for k, v in experiment.items():
-        template_dict[k] = v
-    template_dict['name'] = name
-    print(template_dict)
-    source = template.render(its=its, unroll=unroll, **template_dict)
+    #template_dict = {}
+    #for k, v in experiment.items():
+    #    template_dict[k] = v
+    #template_dict['name'] = name
+    # print(template_dict)
+    source = template.render(kernelname=name, its=its, unroll=unroll, **experiment)
 
     kernel = buildKernel(name, source)
     print('built kernel')
@@ -78,6 +112,12 @@ for experiment in experiments:
         t = timeKernel(name, kernel, block_x=block)
     if args.printptx:
         print(getPtx(name))
+    if 'randbase' in name:
+        if name == 'int_randbase':
+            randbase_time = t
+            continue
+        #else:
+        t = t - randbase_time / divider
     gflops = 1/ (t / 1000) * experiment['ops'] * block * its / 1000 / 1000 / 1000
     op_ns = t / its * 1000 * 1000
     times.append({'name': name, 'time': t, 'gflops': gflops, 'op_ns': op_ns})

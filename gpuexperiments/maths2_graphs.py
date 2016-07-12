@@ -26,14 +26,19 @@ reader = csv.DictReader(f, delimiter='\t')
 for row in reader:
     print('row', row)
     if row['name'] not in ['int_sub', 'int_add']:
-        times.append({'name': row['name'], 'time': float(row['tot ms']), 'gflops': float(row['gflops'])})
+        name = row['name']
+        if 'int' in name and 'randbase' not in name:
+            continue
+        if 'randbase' in name:
+            name = name.replace('randbase_', '')
+        times.append({'name': name, 'time': float(row['tot ms']), 'gflops': float(row['gflops'])})
 #f.readline()
 #for line in f:
     #split_line = line.split('\t')
     #times.append({'name': split_line[0], 'time': float(split_line[1]), 'flops': float(split_line[2])})
 f.close()
 
-print('times', times)
+# print('times', times)
 # sys.exit(1)
 
 labels = []
@@ -55,6 +60,7 @@ plt.axis([0, max(values), -0.5, len(values)])
 plt.yticks(y_pos, labels)
 plt.title(deviceNameSimple)
 plt.xlabel('FLOPS')
+#plt.tick_params(axis='y', pad=-80, direction='in', left='off')
 #plt.ylabel('GFLOPS')
 #legend = plt.legend(loc='lower right') # fontsize='x-large')
 plt.savefig('/tmp/maths2_%s.png' % deviceNameSimple, dpi=150)
