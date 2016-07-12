@@ -197,6 +197,12 @@ Drawing a graph with respect to matrix size is not strictly part of the Volkov s
 
 We can see that larger matrices give higher flops.  But there is a sweet spot, somewhere around a matrix size of ~512.  This corresponds to ~1MB per input matrix, or about 2MB for the combined input matrices.  This sounds comparable in size to L2 cache perhaps?
 
+For Titan X:
+
+<img src="img/volkov_mm_titanx.png?raw=true" width="600" height="400" />
+
+[results/volkov_mm_titanx.tsv](results/volkov_mm_titanx.tsv)
+
 ### Matrix multiplication, batched
 
 This is not part of Volkov's slides, but seems to naturally fit into this section.  Or I might create a new section sometime.  Here, I am using only 32x32 matrices, but we can multiply a batch of pairs of such matrices in one kernel launch, and look at the resulting flops.
@@ -258,6 +264,12 @@ therefore, maximum flops = 6.872e10 / 0.299 / 1e9 gigaflops/second
 = 229 gigaflops/second
 ```
 Same
+
+On Titan X:
+
+<img src="img/volkov_mm_batched_titanx.png?raw=true" width="600" height="400" />
+
+[results/volkov_mm_batched_titanx.tsv](results/volkov_mm_batched_titanx.tsv)
 
 ## Context, theoretical limits
 
