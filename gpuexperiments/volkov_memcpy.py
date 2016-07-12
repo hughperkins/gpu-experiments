@@ -1,6 +1,7 @@
 # Note that this will erase your nvidia cache, ~/.nv/ComputeCache  This may or may not be an undesirable side-effect for you.  For example, cutorch will take 1-2 minutes or so to start after this cache has been emptied.
 
 from __future__ import print_function, division
+import argparse
 import time
 import string
 import random
@@ -16,6 +17,10 @@ from gpuexperiments.timecheck import inittime, timecheck
 import lib_clgpuexp
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--printptx', type=bool, default=False)
+args = parser.parse_args()
 
 initClGpu()
 
@@ -106,7 +111,8 @@ for experiment in experiments:
             continue
         bsm_done.add(actual_blocks_per_sm)
         name = experiment['name'].format(bsm=actual_blocks_per_sm)
-        clearComputeCache()
+        if args.printptx:
+            clearComputeCache()
         source = template.render(kernelname=name, **experiment)
         # print('source', source)
         try:
