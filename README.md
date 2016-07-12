@@ -154,6 +154,14 @@ Here is the same graph for Titan X:
 
 This graph looks more like what we'd expect, since it's upward floating over more or less the entire range.  However, the peak is at 24, not 32, which is strange again.  Mysterious!
 
+## global write
+
+[gpuexperiments/globalwrite.py](gpuexperiments/globalwrite.py)
+
+<img src="img/globalwrite_940m.png?raw=true" width="600" height="400" />
+
+[results/globalwrite_940m.tsv](results/globalwrite_940m.tsv)
+
 ## other things to check maybe
 
 * Effect of barrier on performance
