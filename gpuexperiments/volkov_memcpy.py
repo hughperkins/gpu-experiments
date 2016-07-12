@@ -78,7 +78,7 @@ for experiment in experiments:
     # for block in range(128,1024+128,128):
     # for occupancy in range(10, 110, 10):
     bsm_done = set()
-    typeSize = int(experiment['type'].replace('float', '')) * 4
+    typeSize = int((experiment['type'].replace('float', '') + '1')[0]) * 4
 
     for blocks_per_sm in range(2, 32 + 2, 2):
         block = 32
