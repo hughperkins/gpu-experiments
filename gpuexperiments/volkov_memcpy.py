@@ -63,10 +63,10 @@ code_template = r"""
 """
 
 experiments = [
-    #{'name': 'memcpy_ilp1_float_bsm{bsm}', 'code': code_template, 'ilp': 1, 'type': 'float'},
-    #{'name': 'memcpy_ilp2_float_bsm{bsm}', 'code': code_template, 'ilp': 2, 'type': 'float'},
-    #{'name': 'memcpy_ilp4_float_bsm{bsm}', 'code': code_template, 'ilp': 4, 'type': 'float'},
-    #{'name': 'memcpy_ilp8_float_bsm{bsm}', 'code': code_template, 'ilp': 8, 'type': 'float'},
+    {'name': 'memcpy_ilp1_float_bsm{bsm}', 'code': code_template, 'ilp': 1, 'type': 'float'},
+    {'name': 'memcpy_ilp2_float_bsm{bsm}', 'code': code_template, 'ilp': 2, 'type': 'float'},
+    {'name': 'memcpy_ilp4_float_bsm{bsm}', 'code': code_template, 'ilp': 4, 'type': 'float'},
+    {'name': 'memcpy_ilp8_float_bsm{bsm}', 'code': code_template, 'ilp': 8, 'type': 'float'},
     {'name': 'memcpy_ilp8_float2_bsm{bsm}', 'code': code_template, 'ilp': 8, 'type': 'float2'},
     {'name': 'memcpy_ilp8_float4_bsm{bsm}', 'code': code_template, 'ilp': 8, 'type': 'float4'}
 ]
