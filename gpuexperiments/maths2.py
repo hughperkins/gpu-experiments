@@ -2,6 +2,7 @@
 
 from __future__ import print_function, division
 import time
+import argparse
 import string
 import random
 import jinja2
@@ -16,6 +17,10 @@ from gpuexperiments.timecheck import inittime, timecheck
 import lib_clgpuexp
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--printptx', type=bool, default=False)
+args = parser.parse_args()
 
 initClGpu()
 deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
@@ -58,7 +63,8 @@ for experiment in experiments:
     name = experiment['name'].format(**experiment)
     print('name', name)
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
-    clearComputeCache()
+    if args.printptx:
+        clearComputeCache()
     template_dict = {}
     for k, v in experiment.items():
         template_dict[k] = v
@@ -70,7 +76,8 @@ for experiment in experiments:
     print('built kernel')
     for it in range(3):
         t = timeKernel(name, kernel, block_x=block)
-    print(getPtx(name))
+    if args.printptx:
+        print(getPtx(name))
     gflops = 1/ (t / 1000) * experiment['ops'] * block * its / 1000 / 1000 / 1000
     op_ns = t / its * 1000 * 1000
     times.append({'name': name, 'time': t, 'gflops': gflops, 'op_ns': op_ns})
