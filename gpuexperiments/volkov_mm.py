@@ -9,6 +9,7 @@ import time
 import string
 import random
 import jinja2
+import argparse
 import numpy as np
 import pyopencl as cl
 import subprocess
@@ -21,6 +22,10 @@ import lib_clgpuexp
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel3d, buildKernel, initClGpu
 from lib_clgpuexp import dumpSass
 
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--printptx', type=bool, default=False)
+args = parser.parse_args()
 
 initClGpu()
 
@@ -142,7 +147,8 @@ mf = lib_clgpuexp.mf
 
 times = []
 full_occupancy_bsm = 32  # this should probably not be hard coded...
-clearComputeCache()
+if args.printptx:
+    clearComputeCache()
 for experiment in experiments:
     S = 32
     while S <= 1024:
