@@ -279,7 +279,7 @@ On Titan X:
 
 [results/volkov_mm_batched_titanx.tsv](results/volkov_mm_batched_titanx.tsv)
 
-## Context, theoretical limits
+## Hardware and theoretical characteristics
 
 ### Hardware used
 
