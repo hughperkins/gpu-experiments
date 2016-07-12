@@ -106,6 +106,12 @@ For other operations, we see:
 - int div slllooowwww
 - float sqrt is pretty slow, but still faster than int div
 
+On Titan X:
+
+<img src="img/maths2_titanx.png?raw=true" width="600" height="400" />
+
+[results/maths2_titanx.tsv](results/maths2_titanx.tsv)
+
 ### Occupancy
 
 In Volkov, slide 30, he suggests that we can allocated shared memory dynamically, to control occupancy.  Let's try this:
