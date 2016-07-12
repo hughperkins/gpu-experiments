@@ -96,12 +96,14 @@ Comparison of maths operators.  This is using a single block of 32 threads.  Res
 
 [results/maths2_940m.tsv](results/maths2_940m.tsv)
 
-`int add` and `int sub` were optimized away, so removed from the graph.  Not sure how to work around that?  Section 'effect of optimization on performance?' shows that just turning off optimizations gives unrepresentative results, so not really an option.
+`int add` and `int sub` were optimized away initially, so needed some tricks to become measurable.
 
-For other operations, we see:
+For floats, we see:
 - `fma` is the fastest
-- float add/sub/mul all same speed as each other
-- float div about 3 times slower than mul
+- add/sub/mul all same speed as each other
+- div about 3 times slower than mul
+
+For ints:
 - int mul half as fast as float mul
 - int div slllooowwww
 - float sqrt is pretty slow, but still faster than int div
