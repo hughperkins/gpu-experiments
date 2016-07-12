@@ -56,7 +56,7 @@ compute_capability = (
     lib_clgpuexp.device.get_info(cl.device_info.COMPUTE_CAPABILITY_MINOR_NV)
 )
 deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
-deviceNameSimple = deviceName.replace('GeForce', '').strip().replace(' ', '').lower()
+deviceNameSimple = deviceName.replace('GeForce', '').replace('GTX', '').strip().replace(' ', '').lower()
 
 print('deviceName', deviceName, 'compute capability', compute_capability)
 print('compute units', compute_units, 'max shared memory', maxShared)

@@ -19,7 +19,7 @@ from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, ini
 
 initClGpu()
 deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
-deviceSimpleName = deviceName.replace('GeForce', '').strip().replace(' ', '').lower()
+deviceSimpleName = deviceName.replace('GeForce', '').replace('GTX', '').strip().replace(' ', '').lower()
 
 template = r"""
     kernel void {{name}}(global {{type}} *data, global {{type}} *out) {

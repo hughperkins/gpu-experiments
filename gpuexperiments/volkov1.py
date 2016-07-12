@@ -47,7 +47,7 @@ code_template = r"""
         """
 
 deviceName = lib_clgpuexp.device.get_info(cl.device_info.NAME)
-deviceNameSimple = deviceName.replace('GeForce', '').strip().replace(' ', '').lower()
+deviceNameSimple = deviceName.replace('GeForce', '').replace('GTX', '').strip().replace(' ', '').lower()
 
 experiments = [
     #{'name': 'k1_nofma_{block}', 'code': code_template, 'options': '', 'template_args': {'fma': False, 'ilp': 1}},
