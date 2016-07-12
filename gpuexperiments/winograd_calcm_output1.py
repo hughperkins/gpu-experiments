@@ -62,6 +62,7 @@ kernel void calcm_output(
 
     int tid1 = get_local_id(1);
     int tid = get_local_id(0);
+    int linearid = (tid1 << 5) + tid;
     int b = get_group_id(0);
 
     int tiles2 = tiles * tiles;
@@ -132,8 +133,8 @@ for experiment in experiments:
         ])
     t = t_sum / its
 
-    bw_gib = grid[0] * block[0] * block[1]
-    bw_gib = 0
+    gib = grid[0] * grid[1] * block[0] * block[1] * GN * GK * 36 * 4 / 1024 / 1024 / 1024
+    bw_gib = gib / (t/1000)
 
     # ops = S * S * S * 2
     #ops = S * S * S * 2 * batchsize
