@@ -176,6 +176,16 @@ Let's do some other simple tests first though.  Here is effect of blocksize on b
 
 We can see that bandwidth is linear in blocksize, until we saturate the available bandwidth, at a blocksize of ~128 threads.  Note that it looks like we can get full bandwidth using a single block, ie *running on a single compute unit*.
 
+Let's try varying similarly the gridsize, with a single block of 32 threads.
+
+[gpuexperiments/globalwrite_gridsize.py](gpuexperiments/globalwrite_gridsize.py)
+
+<img src="img/globalwrite_gridsize_940m.png?raw=true" width="600" height="400" />
+
+[results/globalwrite_gridsize_940m.tsv](results/globalwrite_gridsize_940m.tsv)
+
+A grid of 32 blocks of 32 threads is sufficient to saturate the bandwidth, on a 940M.  Actually, just 8 blocks of 32 threads reaches 12GiB/seconds, within about ~20% of full bandwidth.
+
 ## other things to check maybe
 
 * Effect of barrier on performance
