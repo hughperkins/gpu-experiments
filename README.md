@@ -162,6 +162,18 @@ This graph looks more like what we'd expect, since it's upward floating over mor
 
 [results/globalwrite_940m.tsv](results/globalwrite_940m.tsv)
 
+Clearly, strided writes have a significant effect on bandwidth.  Presumably they are written in batches of eg 8 floats, ie 32 bytes?
+
+Presumably, we could test this by writing blocks of different sizes to widely spaced parts of memory, and plotting a graph of bandwidth vs block size?
+
+Let's do some other simple tests first though.  Here is effect of blocksize on bandwidth, given a single block, where the kernel contains a single tight for loop.
+
+[gpuexperiments/globalwrite_blocksize.py](gpuexperiments/globalwrite_blocksize.py)
+
+<img src="img/globalwrite_blocksize_940m.png?raw=true" width="600" height="400" />
+
+[results/globalwrite_blocksize_940m.tsv](results/globalwrite_blocksize_940m.tsv)
+
 ## other things to check maybe
 
 * Effect of barrier on performance
