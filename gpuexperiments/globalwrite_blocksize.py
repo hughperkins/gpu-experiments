@@ -58,7 +58,7 @@ for experiment in experiments:
         if args.printptx:
             clearComputeCache()
         maxOffset = 4 * 1024 * 1024
-        source = template.render(kernelname=name, **experiment, its=its, maxOffset=maxOffset)
+        source = template.render(kernelname=name, its=its, maxOffset=maxOffset, **experiment)
         # print('source', source)
         try:
             kernel = buildKernel(name, source)
