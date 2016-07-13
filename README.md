@@ -1,6 +1,6 @@
 # gpu-experiments
 
-Informal experiments on various gpu kernel questions
+Experiments on various gpu kernel questions
 
 Terminology will be interchangeably cuda/opencl.  Experiments run on Titan X and GeForce 940M.  Where not specified, they are running on NVIDIA 940M, which is a Maxwell.
 
