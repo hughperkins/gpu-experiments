@@ -174,7 +174,7 @@ Let's do some other simple tests first though.  Here is effect of blocksize on b
 
 [results/globalwrite_blocksize_940m.tsv](results/globalwrite_blocksize_940m.tsv)
 
-We can see that bandwidth is linear in blocksize, until we saturate the available bandwidth, at a blocksize of ~128 threads.  Note that it looks like we can get full bandwidth using a single block, ie *running on a single computer unit*.
+We can see that bandwidth is linear in blocksize, until we saturate the available bandwidth, at a blocksize of ~128 threads.  Note that it looks like we can get full bandwidth using a single block, ie *running on a single compute unit*.
 
 ## other things to check maybe
 
