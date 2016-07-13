@@ -14,65 +14,23 @@ Terminology will be interchangeably cuda/opencl.  Experiments will run on differ
 
 [gpuexperiments/optimization2.py](gpuexperiments/optimization2.py)
 
-```
-kernel time(ms) GFLOPS
-k1_noopt_128 140.652179718018 1.81997617465439
-k1_opt_128 9.61518287658691 26.6228546337193
-k1_noprag_noopt_128 16.4401531219482 15.5706345373543
-k1_noprag_opt_128 6.25729560852051 40.9096248627649
-k1_fma_noopt_128 483.375072479248 0.529575542005199
-k1_fma_opt_128 9.49525833129883 26.9590996967625
-```
-- looks like optimizatoin makes a huge difference. Why?
-- unroll is part of the story: `#pragma unroll` seems to do nothing, when optimization is turned off
-  - the `noprag` kernels use jinja2 to unroll, rather than using `#pragma unroll`
-  - but still slower, so not the whole story
+<img src="img/optimization2_940m.png?raw=true" width="600" height="400" />
 
-Going right down to the SASS, no obious differences.  For optimized, the sass for the loop is:
-```
-        /*0058*/                   IADD32I R4, R4, 0x4;                       /* 0x1c00000000470404 */
-                                                                              /* 0x301fd800fe2d07f5 */
-        /*0068*/                   FFMA R2, R7, R0.reuse, R5.reuse;           /* 0x5980028000070702 */
-        /*0070*/                   ISETP.NE.AND P0, PT, R4, RZ, PT;           /* 0x5b6b03800ff70407 */
-        /*0078*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
-                                                                              /* 0x001ff400fe0c07f6 */
-        /*0088*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
-        /*0090*/         {         FFMA R7, R2, R0, R5;                       /* 0x5980028000070207 */
-        /*0098*/               @P0 BRA 0x58;        }                         /* 0xe2400ffffb80000f */
-```
-For un-optimized, it is:
-```
-        /*0050*/                   IADD32I R4, R4, 0x4;                                /* 0x1c00000000470404 */
-        /*0058*/                   FFMA R2, R7, R0.reuse, R5.reuse;                    /* 0x5980028000070702 */
-                                                                                       /* 0x301fd980fec007f1 */
-        /*0068*/                   ISETP.LT.AND P0, PT, R4, c[0x2][0x0], PT;           /* 0x4b63038800070407 */
-        /*0070*/                   FFMA R2, R2, R0.reuse, R5.reuse;                    /* 0x5980028000070202 */
-        /*0078*/                   FFMA R2, R2, R0.reuse, R5.reuse;                    /* 0x5980028000070202 */
-                                                                                       /* 0x001fc400ffa007f0 */
-        /*0088*/         {         FFMA R7, R2, R0, R5;                                /* 0x5980028000070207 */
-        /*0090*/               @P0 BRA 0x50;        }                                  /* 0xe2400ffffb80000f */
-```
-Basically the same?  Just one has `c[0x2][0x0]` and one has `RZ`.  Could be the reason though, so modified the nopragma kernel, code nopragma2, which gave sass:
-```
-        /*0050*/                   IADD32I R4, R4, 0x1;                       /* 0x1c00000000170404 */
-        /*0058*/                   FFMA R2, R7, R0.reuse, R5.reuse;           /* 0x5980028000070702 */
-                                                                              /* 0x301fd980fec007f1 */
-        /*0068*/                   ISETP.NE.AND P0, PT, R4, RZ, PT;           /* 0x5b6b03800ff70407 */
-        /*0070*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
-        /*0078*/                   FFMA R2, R2, R0.reuse, R5.reuse;           /* 0x5980028000070202 */
-                                                                              /* 0x001fc400ffa007f0 */
-        /*0088*/         {         FFMA R7, R2, R0, R5;                       /* 0x5980028000070207 */
-        /*0090*/               @P0 BRA 0x50;        }     
-```
-Exactly identical to optimized version?  But 5 times slower:
-```
-kernel			tot ms	gflops
-k1_opt_128             	9.4	27.17
-k1_noprag4_noopt_128   	47.6	5.38
-k1_noprag4b_noopt_128  	46.5	5.50
-```
+[results/optimization2_940m.tsv](results/optimization2_940m.tsv)
 
-Without any way of explaining this discrepancy, it looks like we should do all experiments with optimizations on unfortunately.  This makes it harder to make artificial kernels for timing that dont just get entirely optimized away.
+The labels mean:
+- `opt`: optimizations on, else off
+- `unroll`: manually unroll loops, using Jinja2, else `#pragma unroll`
+- `fma`: use `fma(a,b,c)`, else `a*b+c`
+
+Clearly optimization makes a huge difference
+- even using manually unrolled, the unoptimized is still half as fast as optimized
+- fma in non-optimized is actually slower than non-fma.  Looking at the ptx code, it looks like it's because `fma` is actually a function call, in non-optimized version, not written as an inline ptx assembler code
+- `#pragma unroll` when non-optimized seems to be ignored
+
+It is a mystery why even with manual Jinja2 unrolling, unoptimized is still slower than optimized.  The ptx code for these two versons is identical, to within register numbering.
+
+Without any way of explaining this discrepancy, it looks like we should do all experiments with optimizations on, unfortunately.  This makes it harder to make artificial kernels for timing that dont just get entirely optimized away.
 
 ### inlining?
 

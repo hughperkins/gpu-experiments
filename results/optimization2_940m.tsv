@@ -1,0 +1,9 @@
+kernel	tot ms	gflops
+k1	140.2	1.83
+k1_unroll	16.2	15.81
+k1_fma	482.9	0.53
+k1_fma_unroll	360.6	0.71
+k1_opt	7.3	35.06
+k1_opt_unroll	6.2	40.99
+k1_opt_fma	6.2	41.02
+k1_opt_fma_unroll	6.2	41.04
