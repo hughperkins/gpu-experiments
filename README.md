@@ -232,8 +232,6 @@ On Titan X:
 
 [results/globalwrite_gridsize_titanx.tsv](results/globalwrite_gridsize_titanx.tsv)
 
-## Winograd-specific experiments
-
 ### Matrix multiplication, batched
 
 This section was originally organized under the 'volkov' section above, since it is derived from the final matrix multiplication experiment.  It's not part of his slides though, and doesnt really fit into the story he was telling particularly well either.  It is part of my experiments into Winograd kernels, and belongs in this new section.  Prorbably.
