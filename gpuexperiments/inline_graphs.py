@@ -20,11 +20,11 @@ args = parser.parse_args()
 times = []
 
 deviceNameSimple = args.devicename
-f = open('results/optimization2_%s.tsv' % args.devicename, 'r')
+f = open('results/inline_%s.tsv' % args.devicename, 'r')
 reader = csv.DictReader(f, delimiter='\t')
 for row in reader:
     print('row', row)
-    name = row['kernel']
+    name = row['name']
     times.append({'name': name, 'time': float(row['tot ms']), 'gflops': float(row['gflops'])})
 f.close()
 
@@ -34,7 +34,7 @@ values = []
 times.reverse()
 for timeinfo in times:
     #labels.append(timeinfo['name'].replace('_128', '').replace('noprag_', 'unroll_').replace('noopt', '').replace('k1_', '').replace('_', ' ').strip())
-    labels.append(timeinfo['name'].replace('k1_', '').replace('_', ' ').replace('k1', ''))
+    labels.append(timeinfo['name'].replace('k_', '').replace('_', ' '))
     values.append(timeinfo['gflops'])
 
 y_pos = np.arange(len(labels))
@@ -52,5 +52,5 @@ plt.xlabel('GFLOPS/second', fontproperties=mp.font_manager.FontProperties(size=1
 #plt.ylabel('GFLOPS')
 #legend = plt.legend(loc='lower right') # fontsize='x-large')
 #plt.yticks(y_pos, people, fontproperties=font_manager.FontProperties(size=8))
-plt.savefig('/tmp/optimizations2_%s.png' % deviceNameSimple, dpi=150)
+plt.savefig('/tmp/inline_%s.png' % deviceNameSimple, dpi=150)
 

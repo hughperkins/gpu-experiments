@@ -1,0 +1,4 @@
+name	tot ms	gflops
+k_void	25.5	5.0
+k_define	25.7	5.0
+k_staticinline	25.5	5.0

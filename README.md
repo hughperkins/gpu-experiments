@@ -36,13 +36,18 @@ Without any way of explaining this discrepancy, it looks like we should do all e
 
 Do functions get inlined?  When?  [gpuexperiments/inline.py](gpuexperiments/inline.py)
 
-```
-name		tot ms	gflops
-k_staticinline	24.5	5.2
-k_void	24.7	5.2
-k_define	24.7	5.2
-```
-With optimizations on, `#define`, `static inline`, or normal funcion, all run at the exact same speed.
+With optimizations off, it makes a difference (not shown here), but since the previous section demonstrated we should be testing with optimizations on anyway, let's check with optimizations on.  Here are the results on 940M:
+
+<img src="img/inline_940m.png?raw=true" width="600" height="400" />
+
+[results/inline_940m.tsv](results/inline_940m.tsv)
+
+Meaning of labels:
+- `void`: standard function, no inlining specified
+- `define`: use a macro, `#define`, instead of a function
+- `static inline`: use static inline function
+
+They all run in the exact same time, so no need for `static inline` and so on.  At least, not in this case.
 
 ### maths
 
