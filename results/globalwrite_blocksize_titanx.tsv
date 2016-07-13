@@ -1,0 +1,17 @@
+name	tot ms	bw gib
+blocksize32	30.2	3.95
+blocksize64	28.8	8.27
+blocksize96	29.0	12.31
+blocksize128	29.0	16.46
+blocksize160	32.0	18.62
+blocksize192	31.8	22.49
+blocksize224	32.0	26.08
+blocksize256	31.8	29.96
+blocksize288	36.1	29.68
+blocksize320	36.1	32.99
+blocksize352	40.0	32.81
+blocksize384	41.2	34.71
+blocksize416	50.2	30.86
+blocksize448	52.0	32.10
+blocksize480	52.5	34.08
+blocksize512	55.0	34.70
