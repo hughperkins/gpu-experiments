@@ -18,9 +18,9 @@ ilp affects global writes, blocks per sm affects global writes.  Nothing too sur
 
 Interestingly, stride does make a difference.  And not a small one.  Presumably, writes to global memory somehow get coallesced, or involve cache lines, or something like this, so just writing one float is a lot less efficient than writing eg 32 adjacent floats.  However, it's interesting that strides 1,2,3 give identical bandwidth, and this probably merits investigation (bug in my script?).  Here is the same graph for 940M:
 
-<img src="img/globalwrite_940m.png?raw=true" width="600" height="400" />
+<img src="img/globalwrite_varystride_940m.png?raw=true" width="600" height="400" />
 
-[results/globalwrite_940m.tsv](results/globalwrite_varystride_940m.tsv)
+[results/globalwrite_940m.tsv](results/globalwrite_940m.tsv)
 
 For 940M, the effect of stride 'maxes out' at a stride for 16.  For Titan X, this seems not to be the case: stride 32 is even slower than stride 16.  We should probably check also the result for stride 64, and maybe stride 128.
 
