@@ -54,8 +54,8 @@ def varyilp():
             ilp = getNameValue(timeinfo['name'], 'ilp', 1)
             stride = getNameValue(timeinfo['name'], 'stride', 1)
             # ilp = int(timeinfo['name'].split('_')[1].replace('ilp', ''))
-        layout = getNameValue(timeinfo['name'], 'l', '1')
-        if layout != '1':
+        layout = getNameValue(timeinfo['name'], 'l', 1)
+        if layout != 1:
             continue
         if family != lastFamily:
             list_idx += 1
@@ -106,6 +106,8 @@ def varystride():
         ilp = int(getNameValue(name, 'ilp', 1))
         # print('ilp', ilp)
         if ilp != 1:
+            continue
+        if layout != 1:
             continue
         # print('ilp', ilp)
         stride = int(getNameValue(name, 'stride', 1))
