@@ -56,7 +56,8 @@ for experiment in experiments:
     template = jinja2.Template(experiment['code'], undefined=jinja2.StrictUndefined)
     blockSize = 32
     grid_x = 1
-    while grid_x <= 64:
+    grid_max = 64 if deviceSimpleName == '940m' else 128
+    while grid_x <= grid_max:
         name = experiment['name'].format(gridsize=grid_x)
         if args.printptx:
             clearComputeCache()

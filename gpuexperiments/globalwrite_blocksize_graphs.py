@@ -65,7 +65,8 @@ for i, name in enumerate(names):
     plt.plot(X, Y, '-x', label=name)
     thismax = max(thismax, max(Y))
     maxx = max(maxx, max(X))
-maxx = 384
+if args.devicename == '940m':
+    maxx = 384
 
 #plt.axis([0, max(X), 0, max(Y)])
 plt.axis([0, maxx, 0, thismax])
