@@ -65,22 +65,27 @@ kernel void calcm_output(
     int linearid = (tid1 << 5) + tid;
     int b = get_group_id(0);
 
-    int tiles2 = tiles * tiles;
+    int tiles266 = tiles * tiles * 6 * 6;
     int b36 = 36 * b;
     for(int gn = 0; gn < GN; gn++) {
         int gn32 = gn << 5;
+        int gn32offset = (gn << 5) * GK * 32 * tiles266;
         for(int gk = 0; gk < GK; gk++) {
             int gk32 = gk << 5;
-           int offset = (gn32) * GK * 32 * tiles2 * 6 * 6 +
-                        (gk32) * tiles2 * 6 * 6 +
+           int offset = gn32offset +
+                        (gk32) * tiles266 +
                         b36
                         ;
-            int n_stride = GK * 32 * tiles2 * 6 * 6;
-            int co_stride = tiles2 * 6 * 6;
+            int n_stride = GK * 32 * tiles266;
+            int co_stride = tiles266;
             offset += tid1 * n_stride + tid * co_stride;
             float sum0 = 0.0f;
-            for(int xinu = 0; xinu < 36; xinu++) {
+            float sum1 = 0.0f;
+            for(int xinu = 0; xinu < 36; xinu+=4) {
                 M[offset + xinu] = sum0;
+                M[offset + xinu + 1] = sum1;
+                M[offset + xinu + 2] = sum1;
+                M[offset + xinu + 3] = sum1;
             }
         }
     }
@@ -149,7 +154,7 @@ for experiment in experiments:
 
 f = open('/tmp/winograd_calcm_output_%s.tsv' % deviceSimpleName, 'w')
 print('')
-line = 'name\ttime\tflops'
+line = 'name\ttime\tbw gib'
 print(line)
 f.write(line + '\n')
 for timeinfo in times:
