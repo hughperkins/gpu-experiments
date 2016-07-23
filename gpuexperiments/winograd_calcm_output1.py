@@ -54,14 +54,20 @@ else:
     raise Exception('compute capability %s not recognized' % compute_capability)
 assert shared_memory_per_sm is not None
 
+"""
+U: U[xinu * xinu_U_stride + gk * Ci * 32 + global_ci32 + local_co]
+U:         [xi][nu][gk][c] [k%]
+V: [xi][nu][gn][th][tw][ci][n%]
+M: [gn][gk][k%][th][tw][xi][nu]
+"""
 code_template = r"""
 kernel void calcm_output(
         global float *data, global float * M,
         int tiles, int GN, int GK
     ) {
 
-    int tid1 = get_local_id(1);
-    int tid = get_local_id(0);
+    int tid1 = get_local_id(1);  // n % 32
+    int tid = get_local_id(0);   // ci % 32
     int linearid = (tid1 << 5) + tid;
     int b = get_group_id(0);
 
