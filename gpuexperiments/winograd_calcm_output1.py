@@ -56,9 +56,17 @@ assert shared_memory_per_sm is not None
 
 """
 U: U[xinu * xinu_U_stride + gk * Ci * 32 + global_ci32 + local_co]
-U:         [xi][nu][gk][c] [k%]
-V: [xi][nu][gn][th][tw][ci][n%]
-M: [gn][gk][k%][th][tw][xi][nu]
+U:             [xi][nu][gk][c] [k%]
+V:     [xi][nu][gn][th][tw][ci][n%]
+M: [gn][n%][gk][k%][th][tw][xi][nu]
+
+grid.x    [th][tw]
+grid.y    0
+
+thread loops: [gn][gk][xi][nu]
+
+block.x   ci % 32
+block.y   n  % 32
 """
 code_template = r"""
 kernel void calcm_output(
@@ -66,8 +74,8 @@ kernel void calcm_output(
         int tiles, int GN, int GK
     ) {
 
-    int tid1 = get_local_id(1);  // n % 32
     int tid = get_local_id(0);   // ci % 32
+    int tid1 = get_local_id(1);  // n % 32
     int linearid = (tid1 << 5) + tid;
     int b = get_group_id(0);
 
