@@ -54,22 +54,8 @@ else:
     raise Exception('compute capability %s not recognized' % compute_capability)
 assert shared_memory_per_sm is not None
 
-"""
-U: U[xinu * xinu_U_stride + gk * Ci * 32 + global_ci32 + local_co]
-U:             [xi][nu][gk][c] [k%]
-V:     [xi][nu][gn][th][tw][ci][n%]
-M: [gn][n%][gk][k%][th][tw][xi][nu]
-
-grid.x    [th][tw]
-grid.y    0
-
-thread loops: [gn][gk][xi][nu]
-
-block.x   ci % 32
-block.y   n  % 32
-"""
 code_template = r"""
-kernel void calcm_output(
+kernel void {{kernelname}}(
         global float *data, global float * M,
         int tiles, int GN, int GK
     ) {
@@ -95,11 +81,47 @@ kernel void calcm_output(
             offset += tid1 * n_stride + tid * co_stride;
             float sum0 = 0.0f;
             float sum1 = 0.0f;
+            float sum2 = 0.0f;
+            float sum3 = 0.0f;
             for(int xinu = 0; xinu < 36; xinu+=4) {
                 M[offset + xinu] = sum0;
                 M[offset + xinu + 1] = sum1;
-                M[offset + xinu + 2] = sum1;
-                M[offset + xinu + 3] = sum1;
+                M[offset + xinu + 2] = sum2;
+                M[offset + xinu + 3] = sum3;
+            }
+        }
+    }
+}
+"""
+
+code_template2 = r"""
+kernel void {{kernelname}}(
+        global float *data, global float * M,
+        int tiles, int GN, int GK
+    ) {
+
+    int tid = get_local_id(0);   // ci % 32
+    int tid1 = get_local_id(1);  // n % 32
+    int b = get_group_id(0);
+
+    //int tiles266 = tiles * tiles * 6 * 6;
+    //int b36 = 36 * b;
+
+    //int block_offset = (get_group_id(0) * 36) << 10;
+    int tilessq = tiles * tiles;
+    for(int gn = 0; gn < GN; gn++) {
+        for(int gk = 0; gk < GK; gk++) {
+           int offset = ((((gn * GK + gk) * tilessq + b) * 36) << 10)
+                         + (tid << 5) + tid1;
+            float sum0 = 0.0f;
+            float sum1 = 0.0f;
+            float sum2 = 0.0f;
+            float sum3 = 0.0f;
+            for(int xinush10 = 0; xinush10 < (36 << 10); xinush10+=(4<<10)) {
+                M[offset + xinush10] = sum0;
+                M[offset + xinush10 + (1<<10)] = sum1;
+                M[offset + xinush10 + (2<<10)] = sum2;
+                M[offset + xinush10 + (3<<10)] = sum3;
             }
         }
     }
@@ -119,7 +141,9 @@ S = 32
 
 
 experiments = [
-    {'name': 'calcm_output', 'code': code_template, 'block': (blocksize, blocksize, 1), 'outs': 1}
+    {'name': 'template1', 'code': code_template, 'block': (blocksize, blocksize, 1), 'outs': 1},
+    {'name': 'template1', 'code': code_template, 'block': (blocksize, blocksize, 1), 'outs': 1},
+    {'name': 'template2', 'code': code_template2, 'block': (blocksize, blocksize, 1), 'outs': 1}
 ]
 
 times = []
@@ -135,6 +159,8 @@ for experiment in experiments:
     # print('source', source)
     kernel = buildKernel(name, source)
 
+    print('tiles', tiles)
+    print('tiles * tiles', tiles * tiles)
     grid = (tiles * tiles, 1, 1)
     block = experiment['block']
 

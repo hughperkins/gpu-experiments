@@ -111,4 +111,5 @@ This graph looks more like what we'd expect, since it's upward floating over mor
 
 * Effect of barrier on performance
 * Effect of memory layout for writes to global memory
+* Loop vs grid?  Better to be more contigous for grid or for loop?
 
