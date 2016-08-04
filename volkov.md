@@ -26,6 +26,8 @@ For Titan X, we get benefit of ilp all the way up to ilp==8.  For ilp 6 and 8, t
 
 [results/volkov1_1080.tsv](results/volkov1_1080.tsv)
 
+Double the flops basically.
+
 ## global mem copy, vary ilp
 
 [gpuexperiments/volkov_memcpy.py](gpuexperiments/volkov_memcpy.py)
