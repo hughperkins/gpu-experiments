@@ -1,6 +1,11 @@
 """
 This will create a single block, with shared memory,and increase the size of shared memory, till it crashes.  The
 previous size of shared memory is thus the max.
+
+Hmmm, actually thta wont work, we need multiple blocks in fact...
+
+Hmmm, in fact, we cannot detect this by simply trying to get crashes, only by analyzing appropriate graphs...
+(or checking the specs)
 """
 from __future__ import print_function, division
 import argparse
