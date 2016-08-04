@@ -36,6 +36,11 @@ block = (1, 1, 1)
 shared_bytes_kb = 1
 while True:
     print('trying', shared_bytes_kb, 'kb')
-    call_cl_kernel(kernel, lib_clgpuexp.q, grid, block, lib_clgpuexp.d_cl, lib_clgpuexp.out_cl, cl.LocalMemory(shared_bytes_kb * 1024))
-    lib_clgpuexp.q.finish()
-    shared_bytes_kb += 1
+    try:
+        call_cl_kernel(kernel, lib_clgpuexp.q, grid, block, lib_clgpuexp.d_cl, lib_clgpuexp.out_cl, cl.LocalMemory(shared_bytes_kb * 1024 - 4))
+        lib_clgpuexp.q.finish()
+        shared_bytes_kb += 1
+    except Exception as e:
+        print('found limit')
+        break
+print('max shared memory per multiprocessor: %sKiB' % (shared_bytes_kb - 1))
