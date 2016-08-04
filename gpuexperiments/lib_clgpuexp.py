@@ -19,30 +19,32 @@ d_cl = None
 out = None
 out_cl = None
 
+
 def initClGpu(gpu_idx=0):
     global ctx, q, device, d, d_cl, out, out_cl
 
     platforms = cl.get_platforms()
     i = 0
     for platform in platforms:
-       gpu_devices = platform.get_devices(device_type=cl.device_type.GPU)
-       if gpu_idx < i + len(gpu_devices):
-           device = gpu_devices[gpu_idx-i]
-           ctx = cl.Context(devices=[device])
-           break
-       i += len(gpu_devices)
+        gpu_devices = platform.get_devices(device_type=cl.device_type.GPU)
+        if gpu_idx < i + len(gpu_devices):
+            device = gpu_devices[gpu_idx - i]
+            ctx = cl.Context(devices=[device])
+            break
+        i += len(gpu_devices)
 
     # print('context', ctx)
     q = cl.CommandQueue(ctx)
     mf = cl.mem_flags
 
-    d = np.zeros((1024*1024 * 32 * 2,), dtype=np.float32)
+    d = np.zeros((1024 * 1024 * 32 * 2,), dtype=np.float32)
     d_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=d)
 
-    out = np.zeros((1024*1024 * 32 * 2,), dtype=np.float32)
+    out = np.zeros((1024 * 1024 * 32 * 2,), dtype=np.float32)
     out_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=out)
 
     return ctx, q, mf
+
 
 def getComputeCapability():
     compute_capability = '%s.%s' % (
@@ -50,6 +52,7 @@ def getComputeCapability():
         device.get_info(cl.device_info.COMPUTE_CAPABILITY_MINOR_NV)
     )
     return compute_capability
+
 
 def clearComputeCache():
     cache_dir = join(os.environ['HOME'], '.nv/ComputeCache')
@@ -60,23 +63,25 @@ def clearComputeCache():
         subprocess.call(['rm', '-Rf', join(cache_dir, subdir)])
 #    subprocess.call(['rm', '-Rf', join(os.environ['HOME'], '.nv/ComputeCache')])
 
+
 def getPtx(kernelName):
     with open('/tmp/gpucmd.sh', 'w') as f:
         f.write(r"""#!/bin/bash
         cat $(grep -r %s ~/.nv/ComputeCache | awk '{print $3}')
-"""  % kernelName)
+""" % kernelName)
     ptxb = subprocess.check_output(['/bin/bash', '/tmp/gpucmd.sh'])
     ptx_utf8 = ''
     for byte in ptxb:
         # print(byte)
         if byte >= 10 and byte < 128:
-           if chr(byte) in string.printable:
-               ptx_utf8 += chr(byte)
+            if chr(byte) in string.printable:
+                ptx_utf8 += chr(byte)
     # print('filepath', filepath)
-    #print(kernelName)
+    # print(kernelName)
     ptx = ptx_utf8.split('--opt-level')[0].split('--reserve')[0]
     # print(ptx)
     return ptx
+
 
 def dumpSass(kernelName):
     ptx = getPtx(kernelName)
@@ -100,10 +105,11 @@ def dumpSass(kernelName):
     # sys.exit(1)
     return sass
 
+
 def timeKernel(name, kernel, add_args=[], grid_x=1, block_x=32):
     # clearComputeCache()
-    grid = (grid_x,1,1)
-    block = (block_x,1,1)
+    grid = (grid_x, 1, 1)
+    block = (block_x, 1, 1)
     q.finish()
     inittime()
     call_cl_kernel(kernel, q, grid, block, d_cl, out_cl, *add_args)
@@ -111,7 +117,8 @@ def timeKernel(name, kernel, add_args=[], grid_x=1, block_x=32):
     return timecheck(name)
     # print(getPtx('mykernel'))
 
-def timeKernel3d(name, kernel, add_args=[], grid=(1,1,1), block=(32,1,1)):
+
+def timeKernel3d(name, kernel, add_args=[], grid=(1, 1, 1), block=(32, 1, 1)):
     q.finish()
     inittime()
     call_cl_kernel(kernel, q, grid, block, d_cl, out_cl, *add_args)
@@ -119,10 +126,10 @@ def timeKernel3d(name, kernel, add_args=[], grid=(1,1,1), block=(32,1,1)):
     return timecheck(name, echo=False)
     # print(getPtx('mykernel'))
 
+
 def buildKernel(name, source, options=''):
     # options = '-cl-opt-disable'
-    #if name in optimized:
+    # if name in optimized:
     #    print('ENABLING OPTIMIZATIONS')
     #    options = ''
-    return cl.Program(ctx, source).build(options=options).__getattr__(name) 
-
+    return cl.Program(ctx, source).build(options=options).__getattr__(name)
