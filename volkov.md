@@ -20,6 +20,12 @@ On 940M, with no ilp, we never actually hit the peak, using 1 block of maximum t
 
 For Titan X, we get benefit of ilp all the way up to ilp==8.  For ilp 6 and 8, the unroll was reduced from 256 down to 64, in order to get the highest performance (just trying different unrolls empirically).  Using ilp 8, we get peak flops with a blocksize of only 128.  Note that the graph of flops versus blocksize does not increase monotonically, for ilp 6 and 8.
 
+1080:
+
+<img src="img/volkov1_1080.png?raw=true" width="600" height="400" />
+
+[results/volkov1_1080.tsv](results/volkov1_1080.tsv)
+
 ## global mem copy, vary ilp
 
 [gpuexperiments/volkov_memcpy.py](gpuexperiments/volkov_memcpy.py)
