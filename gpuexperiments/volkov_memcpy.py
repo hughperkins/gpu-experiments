@@ -30,7 +30,7 @@ times = []
 compute_capability_characteristics = {
     '5.0': {'shared_memory_per_sm': 65536},
     '5.2': {'shared_memory_per_sm': 98304},
-    '6.1': {'shared_memory_per_sm': }
+    '6.1': {'shared_memory_per_sm': 65536}
 }
 
 compute_units = lib_clgpuexp.device.get_info(cl.device_info.MAX_COMPUTE_UNITS)
