@@ -12,7 +12,7 @@ import subprocess
 import os
 from os.path import join
 from gpuexperiments.callkernel import call_cl_kernel
-#import gpuexperiments.cpu_check
+# import gpuexperiments.cpu_check
 from gpuexperiments.timecheck import inittime, timecheck
 import lib_clgpuexp
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
@@ -26,6 +26,13 @@ initClGpu()
 
 times = []
 
+# data comes from http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls
+compute_capability_characteristics = {
+    '5.0': {'shared_memory_per_sm': 65536},
+    '5.2': {'shared_memory_per_sm': 98304},
+    '6.1': {'shared_memory_per_sm': }
+}
+
 compute_units = lib_clgpuexp.device.get_info(cl.device_info.MAX_COMPUTE_UNITS)
 maxShared = lib_clgpuexp.device.get_info(cl.device_info.LOCAL_MEM_SIZE) // 1024
 compute_capability = (
@@ -38,18 +45,7 @@ deviceSimpleName = deviceName.replace('GeForce', '').replace('GTX', '').strip().
 print('deviceName', deviceName, 'compute capability', compute_capability)
 print('compute units', compute_units, 'max shared memory', maxShared)
 
-shared_memory_per_sm = None
-# data comes from http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls
-if compute_capability[0] == 5:
-    if compute_capability[1] == 0:
-        shared_memory_per_sm = 65536
-    elif compute_capability[1] == 2:
-        shared_memory_per_sm = 98304
-    else:
-        raise Exception('compute capability %s not recognized' % compute_capability)
-else:
-    raise Exception('compute capability %s not recognized' % compute_capability)
-assert shared_memory_per_sm is not None
+shared_memory_per_sm = compute_capability_characteristics['%s.%s' % compute_capability]['shared_memory_per_sm']
 
 code_template = r"""
     kernel void {{kernelname}} (global {{type}} *data, global {{type}} *out, local float *F) {
@@ -89,7 +85,7 @@ for experiment in experiments:
         block = 32
         grid = 2 * 1024 * 1024
         grid = grid // experiment['ilp']
-        grid = grid // (typeSize//4)
+        grid = grid // (typeSize // 4)
         if experiment['type'] != 'float4':
             if blocks_per_sm == 2:
                 grid = grid // 6
@@ -104,7 +100,7 @@ for experiment in experiments:
         actual_blocks_per_sm = shared_memory_per_sm // shared_bytes
         occupancy = actual_blocks_per_sm / full_occupancy_bsm * 100
 
-        print('occupancy', occupancy,'shared_bytes', shared_bytes, 'blocks_per_sm', blocks_per_sm,
+        print('occupancy', occupancy, 'shared_bytes', shared_bytes, 'blocks_per_sm', blocks_per_sm,
               'actual_blocks_per_sm', actual_blocks_per_sm, 'shared_memory_per_sm', shared_memory_per_sm)
 
         if actual_blocks_per_sm in bsm_done:
@@ -135,7 +131,7 @@ for experiment in experiments:
 
         # flops = its * block / (t/1000) * 2
         # * 2, because we copy data in both directions, ie twice
-        bandwidth_gib = grid * block * experiment['ilp'] * 2 * typeSize / (t/1000) / 1024 / 1024 / 1024
+        bandwidth_gib = grid * block * experiment['ilp'] * 2 * typeSize / (t / 1000) / 1024 / 1024 / 1024
         print('bandwidth_gib', bandwidth_gib)
         times.append({'name': name, 'time': t, 'bandwidth_gib': bandwidth_gib})
 
@@ -149,4 +145,3 @@ for time_info in times:
     print(line)
     f.write(line + '\n')
 f.close()
-
