@@ -70,6 +70,11 @@ Shared Memory allocation unit size	256
 Warp allocation granularity	4
 ```
 
+Limits for SM6.1, corresponding to GTX1080:
+```
+Shared memory per SM: 64KiB (http://www.hardware.fr/articles/948-2/gp104-7-2-milliards-transistors-16-nm.html "La mémoire partagée des SM du GP100 passe de 96 à 64 Ko mais elle n'est associée qu'à deux partitions au lieu de 4 ce qui indique en réalité une augmentation relative de 33%.")
+```
+
 ## Clinfo output
 
 - [clinfo output for 940M](results/clinfo_940m.md)
