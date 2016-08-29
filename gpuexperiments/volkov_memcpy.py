@@ -15,6 +15,7 @@ from gpuexperiments.callkernel import call_cl_kernel
 # import gpuexperiments.cpu_check
 from gpuexperiments.timecheck import inittime, timecheck
 import lib_clgpuexp
+import hardwarelimits
 from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
 
 
@@ -26,12 +27,7 @@ initClGpu()
 
 times = []
 
-# data comes from http://developer.download.nvidia.com/compute/cuda/CUDA_Occupancy_calculator.xls
-compute_capability_characteristics = {
-    '5.0': {'shared_memory_per_sm': 65536},
-    '5.2': {'shared_memory_per_sm': 98304},
-    '6.1': {'shared_memory_per_sm': 65536}
-}
+compute_capability_characteristics = hardwarelimits.compute_capability_characteristics
 
 compute_units = lib_clgpuexp.device.get_info(cl.device_info.MAX_COMPUTE_UNITS)
 maxShared = lib_clgpuexp.device.get_info(cl.device_info.LOCAL_MEM_SIZE) // 1024
