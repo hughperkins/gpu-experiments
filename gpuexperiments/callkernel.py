@@ -7,6 +7,10 @@ def call_cl_kernel(kernel, queue, grid, block, *args):
     blockDim = len(block)
     if blockDim == 3:
         globalSize = (block[0] * grid[0], block[1] * grid[1], block[2] * grid[2])  # hacky? what do you mean? :-P
+    elif blockDim == 2:
+        globalSize = (block[0] * grid[0], block[1] * grid[1])  # hacky? what do you mean? :-P
+    elif blockDim == 1:
+        globalSize = (block[0] * grid[0])  # hacky? what do you mean? :-P
     else:
         raise Exception('not implemented')
 

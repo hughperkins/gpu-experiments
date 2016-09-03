@@ -2,21 +2,11 @@
 
 from __future__ import print_function, division
 import argparse
-import time
-import string
-import random
 import jinja2
-import numpy as np
 import pyopencl as cl
-import subprocess
-import os
-from os.path import join
-from gpuexperiments.callkernel import call_cl_kernel
-# import gpuexperiments.cpu_check
-from gpuexperiments.timecheck import inittime, timecheck
 import lib_clgpuexp
 import hardwarelimits
-from lib_clgpuexp import clearComputeCache, getPtx, timeKernel, buildKernel, initClGpu
+from lib_clgpuexp import clearComputeCache, timeKernel, buildKernel, initClGpu
 
 
 parser = argparse.ArgumentParser()
