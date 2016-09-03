@@ -148,6 +148,25 @@ call_cl_kernel(
     cl.LocalMemory(blockMids * blockCols * 4)
 )
 q.finish()
+start = time.time()
+its = 10
+for it in range(its):
+    call_cl_kernel(
+        kernel, q, (BlockRows, BlockCols), (blockRows, 1),
+        GlobalRows, GlobalMids, GlobalCols,
+        BlockRows, BlockMids, BlockCols,
+        blockRows, blockMids, blockCols,
+        C_cl, A_cl, B_cl,
+        cl.LocalMemory(blockMids * blockCols * 4)
+    )
+q.finish()
+end = time.time()
+diff = end - start
+avg_time = diff / its
+flops = GlobalRows * GlobalRows * GlobalCols * 2
+print('flops', flops)
+print('total time %s average time %s' % (diff, avg_time))
+print('Gflops per seconds %s', flops / avg_time / 1000 / 1000 / 1000)
 C_gpu = C.copy()
 cl.enqueue_copy(q, C_gpu, C_cl)
 q.finish()
