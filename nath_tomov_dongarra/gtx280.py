@@ -115,9 +115,12 @@ code_template = r"""
             }
         }
         // write C out
+        int globalRow_globalCols = globalRow * GlobalCols;
+        int BlockCol_blockCols = BlockCol * blockCols;
+        int globalRow_globalCols_plus_BlockCol_blockCols = globalRow_globalCols + BlockCol_blockCols;
         for(int blockCol=0; blockCol < blockCols; blockCol++) {
-            int globalCol = BlockCol * blockCols + blockCol;
-            C[globalRow * GlobalCols + globalCol] = C_row[blockCol];
+            //int globalCol = BlockCol_blockCols + blockCol;
+            C[globalRow_globalCols_plus_BlockCol_blockCols + blockCol] = C_row[blockCol];
         }
     }
 """
@@ -144,9 +147,12 @@ C_cpu = A.dot(B)
 print('C_cpu', C_cpu)
 
 kernel = cl.Program(ctx, source).build(options='').__getattr__(kernelname)
+grid = (BlockRows, BlockCols)
+block = (blockRows, 1)
+print('grid', grid, 'block', block)
 for it in range(3):
     call_cl_kernel(
-        kernel, q, (BlockRows, BlockCols), (blockRows, 1),
+        kernel, q, grid, block,
         GlobalRows, GlobalMids, GlobalCols,
         BlockRows, BlockMids, BlockCols,
         blockRows, blockMids, blockCols,
