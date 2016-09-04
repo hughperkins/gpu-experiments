@@ -34,7 +34,7 @@ GlobalMids = 1024
 GlobalCols = 1024
 
 blockRows = 32
-blockMids = 32
+blockMids = 16
 blockCols = 32
 # NTBY = 1
 
@@ -72,8 +72,10 @@ code_template = r"""
         int globalRow = BlockRow * blockRows + tid;
 
         float C_row[{{blockCols}}];
+        //float C_row1[{{blockCols}} >> 1];
         for(int blockCol=0; blockCol < blockCols; blockCol++) {
-            C_row[blockCol] = 0.0f;
+             C_row[blockCol] = 0.0f;
+          //  C_row1[blockCol] = 0.0f;
         }
         {
             int blockCol = tid;
@@ -83,7 +85,7 @@ code_template = r"""
                 // each thread will handle one column of B data, ie
                 // iterate over blockMid
                 // sync point (can remove if num threads == warpsize)
-                barrier(CLK_LOCAL_MEM_FENCE);
+                //barrier(CLK_LOCAL_MEM_FENCE);
                 for(int blockMid=0; blockMid < blockMids; blockMid++) {
                     int globalMid = BlockMid * blockMids + blockMid;
                     B_block[blockMid * blockCols + blockCol] = B[globalMid * GlobalCols + globalCol];
@@ -97,14 +99,17 @@ code_template = r"""
                     A_row[blockMid] = A[globalRow * GlobalMids + globalMid];
                 }
                 // sync point (can remove if num threads == warpsize)
-                barrier(CLK_LOCAL_MEM_FENCE);
+                //barrier(CLK_LOCAL_MEM_FENCE);
 
                 // calc some C :-)
                 // each thread handles a row of c, so needs to iterate over columns
                 // but for each column, needs to iterate over middle too
-                for(int blockCol=0; blockCol < blockCols; blockCol++) {
-                    for(int blockMid=0; blockMid < blockMids; blockMid++) {
-                        C_row[blockCol] += A_row[blockMid] * B_block[blockMid * blockCols + blockCol];
+                    for(int blockCol=0; blockCol < blockCols; blockCol++) {
+                for(int blockMid=0; blockMid < blockMids; blockMid++) {
+                    int blockMid_blockCols = blockMid * blockCols;
+                    float a = A_row[blockMid];
+                        C_row[blockCol] += a * B_block[blockMid_blockCols + blockCol];
+                        // C_row1[blockCol] += A_row[blockMid + 1] * B_block[blockMid * blockCols + blockCol];
                     }
                 }
             }
@@ -164,11 +169,17 @@ end = time.time()
 diff = end - start
 avg_time = diff / its
 flops = GlobalRows * GlobalRows * GlobalCols * 2
-print('flops', flops)
-print('total time %s average time %s' % (diff, avg_time))
-print('Gflops per seconds %s', flops / avg_time / 1000 / 1000 / 1000)
+# print('flops', flops)
 C_gpu = C.copy()
 cl.enqueue_copy(q, C_gpu, C_cl)
 q.finish()
 
 print('C_gpu', C_gpu)
+
+print('')
+print('total time     %.2fs per iteration %.3fs' % (diff, avg_time))
+gigabytes = (GlobalRows * GlobalMids * 4 + GlobalMids * GlobalCols * 4 + GlobalRows * GlobalCols * 4) / 1000 / 1000 / 1000
+print('to/from global %.3f GB/s' % (gigabytes / avg_time))
+gigabytes_cores = (GlobalRows * GlobalCols * GlobalMids * 4 / 1000 / 1000 / 1000)
+print('to/from cores  %.1f GB/s' % (gigabytes_cores / avg_time))
+print('flops          %.1f GFLOPS/s' % (flops / avg_time / 1000 / 1000 / 1000))
