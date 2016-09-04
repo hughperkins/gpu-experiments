@@ -59,7 +59,6 @@ kernel void {{kernelname}} (
     int globalRow_globalCols = globalRow * GlobalCols;
     int BlockCol_blockCols = BlockCol * blockCols;
     int globalRow_globalCols_plus_BlockCol_blockCols = (globalRow_globalCols + BlockCol_blockCols) >> 2;
-    // float4 *C_row_float4 = (float4 *)C_row;
     #pragma unroll
     for(int blockCol=0; blockCol < {{blockCols // 4}}; blockCol++) {
         //int globalCol = BlockCol_blockCols + blockCol;
