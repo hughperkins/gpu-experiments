@@ -62,7 +62,7 @@ print('BlockXs', BlockRows, BlockMids, BlockCols)
 #   A B C
 #   Ablk Bblk Cblk
 
-with open(join(script_dir, basename + '.jinja2.cl')) as f:
+with open(join(script_dir, 'gtx280_v3.jinja2.cl')) as f:
     code_template = f.read()
 
 template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
@@ -128,7 +128,8 @@ print('')
 print('total time     %.4fs; per iteration %.3fs' % (diff, avg_time))
 gigabytes = (GlobalRows * GlobalMids * 4 + GlobalMids * GlobalCols * 4 + GlobalRows * GlobalCols * 4) / 1000 / 1000 / 1000
 print('to/from global %.3f GB/s' % (gigabytes / avg_time))
-gigabytes_cores = (GlobalRows * GlobalCols * GlobalMids * 4 / 1000 / 1000 / 1000)
+gigabytes_cores = (GlobalRows * GlobalCols * GlobalMids * 4 * 3 / 1000 / 1000 / 1000)  # multiply by 3 because for each
+# iteration through inner loop, need to get value of A to core, value of B to core, and retrieve value of C
 print('to/from cores  %.1f GB/s' % (gigabytes_cores / avg_time))
 print('flops          %.1f GFLOPS/s' % (flops / avg_time / 1000 / 1000 / 1000))
 

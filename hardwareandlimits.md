@@ -8,14 +8,17 @@
 ## Device physical characteristics
 
 940M, GM108M (rev a2):
+- architecture: Maxwell
 - memory bandwidth: 14.40GB/s
 - flops: 752 GFLOPS (`980MHz * 384 cuda-cores * 2 ops-per-fma / 1000`)
 - compute units (==SMMs): 3  (from clinfo `max compute units`)
 - clock frequency: 980MHz (from clinfo `max clock frequency`)
 - Max shared memory per block: 48KiB  (from clinfo `Local memory size`)
 - CUDA cores: 384 (from https://en.wikipedia.org/wiki/GeForce_900_series core config 'shader processors')
+- shared memory bandwidth
 
 Titan X:
+- architecture: Maxwell
 - memory bandwidth: 336GB/s
 - flops: 6610 GFLOPS (`128 cuda-cores * 24 compute-units *2 ops-per-fma *1076MHz *1000*1000 mega /1000/1000/1000 giga`)
 - clock: 1076MHz (from clinfo `max clock frequency`, on nimbix ngd3 instance)
@@ -25,10 +28,22 @@ Titan X:
 - Max shared memory per block: 48KiB  (from clinfo `Local memory size`)
 - CUDA cores: 3072
 
+Calculating shared memory bandwidth:
+- reference [4], section 6.1 paragraph 1: theoretical peak SM bandwidth is:
+```
+f_core * W_bank * 32 * num-SMs
+```
+- for 940M, this is:
+```
+980 * 1000 * 1000 * 4 * 32 * 3
+= 375 GB/second
+```
+
 References:
-- https://en.wikipedia.org/wiki/GeForce_900_series
-- https://www.techpowerup.com/gpudb/2643/geforce-940m
-- http://www.tomshardware.com/reviews/nvidia-geforce-gtx-titan-x-gm200-maxwell,4091.html
+- [1] https://en.wikipedia.org/wiki/GeForce_900_series
+- [2] https://www.techpowerup.com/gpudb/2643/geforce-940m
+- [3] http://www.tomshardware.com/reviews/nvidia-geforce-gtx-titan-x-gm200-maxwell,4091.html
+- [4] "Dissecting GPU Memory Hierarchy through Microbenchmarking", Mei, Chu 2016 https://arxiv.org/abs/1509.02308
 
 ## Compute capability limits
 
