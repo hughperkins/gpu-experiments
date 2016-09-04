@@ -72,3 +72,54 @@ flops          9871.5 GFLOPS/s
 ```
 (doesnt change calculated bandwidht to/from global much)
 
+- naive, no A down, no B down, no C calc; change C out loop termination conditoin to jinja2 variable, ie compile time
+constant
+```
+total time     0.0028s; per iteration 0.000s
+to/from global 89.172 GB/s
+to/from cores  30437.4 GB/s
+flops          15218.7 GFLOPS/s
+```
+Time is a bit quick.  Lets set M=N=K=4096
+- naive, no A down, no B down, no C calc; change C out loop termination conditoin to jinja2 variable, ie compile time
+constant, M=N=K=4096
+```
+total time     0.0032s; per iteration 0.000s
+to/from global 1242.349 GB/s
+to/from cores  1696221.1 GB/s
+flops          848110.6 GFLOPS/s
+```
+Seems time is independent of matrix size, and global bandwidth exceeds hardware capability.  Is the loop being optimized out?
+Change it to write out a constant:
+- naive, no A down, no B down, no C calc; change C out loop termination conditoin to jinja2 variable, ie compile time
+constant, M=N=K=4096, write constant 123.0f to C
+```
+total time     0.2445s; per iteration 0.012s
+to/from global 16.471 GB/s
+to/from cores  22488.3 GB/s
+flops          11244.2 GFLOPS/s
+```
+back in sensible realm, but still half of theoretical (since the global bandwidth assumes we are reading A, B; writing C;
+but we are in fact simply writing C; so we should divide by 3)
+Add #pragma unroll:
+- naive, no A down, no B down, no C calc; change C out loop termination conditoin to jinja2 variable, ie compile time
+constant, write constant 123.0f to C; M=N=K=4096; make C out loop #pragma unroll
+```
+total time     0.2442s; per iteration 0.012s
+to/from global 16.486 GB/s
+to/from cores  22508.4 GB/s
+flops          11254.2 GFLOPS/s
+```
+either no change, or slower
+Try change to float4
+- naive, no A down, no B down, no C calc; change C out loop termination conditoin to jinja2 variable, ie compile time
+constant, write constant 123.0f to C; M=N=K=4096; make C out loop #pragma unroll, float4 for c out
+```
+total time     0.0908s; per iteration 0.005s
+to/from global 44.327 GB/s
+to/from cores  60520.8 GB/s
+flops          30260.4 GFLOPS/s
+```
+44.327 / 3 is 14.8GB/s , which is peak, so we are at peak for writing out C.
+
+Let's turn to A.

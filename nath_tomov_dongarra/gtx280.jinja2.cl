@@ -2,17 +2,19 @@ kernel void {{kernelname}} (
         int GlobalRows, int GlobalMids, int GlobalCols,
         int BlockRows, int BlockMids, int BlockCols,
         int blockRows, int blockMids, int blockCols,
-        global float *C, global float *A, global float *B,
+        global float4 *C_float4, global float *A, global float *B,
         local float *B_block) {
+    global float *C = (global float *)C_float4;
     int BlockRow = get_group_id(0);
     int BlockCol = get_group_id(1);
     int tid = get_local_id(0);
     // int blockRow = get_local_id(0);
     int globalRow = BlockRow * blockRows + tid;
 
-    float C_row[{{blockCols}}];
+    float4 C_row_float4[{{blockCols // 4}}];
+    float *C_row = (float *)C_row_float4;
     //float C_row1[{{blockCols}} >> 1];
-    for(int blockCol=0; blockCol < blockCols; blockCol++) {
+    for(int blockCol=0; blockCol < {{blockCols}}; blockCol++) {
          C_row[blockCol] = 0.0f;
       //  C_row1[blockCol] = 0.0f;
     }
@@ -56,9 +58,11 @@ kernel void {{kernelname}} (
     // write C out
     int globalRow_globalCols = globalRow * GlobalCols;
     int BlockCol_blockCols = BlockCol * blockCols;
-    int globalRow_globalCols_plus_BlockCol_blockCols = globalRow_globalCols + BlockCol_blockCols;
-    for(int blockCol=0; blockCol < blockCols; blockCol++) {
+    int globalRow_globalCols_plus_BlockCol_blockCols = (globalRow_globalCols + BlockCol_blockCols) >> 2;
+    // float4 *C_row_float4 = (float4 *)C_row;
+    #pragma unroll
+    for(int blockCol=0; blockCol < {{blockCols // 4}}; blockCol++) {
         //int globalCol = BlockCol_blockCols + blockCol;
-        C[globalRow_globalCols_plus_BlockCol_blockCols + blockCol] = C_row[blockCol];
+        C_float4[globalRow_globalCols_plus_BlockCol_blockCols + blockCol] = C_row_float4[blockCol];
     }
 }

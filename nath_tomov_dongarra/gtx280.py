@@ -125,7 +125,7 @@ print('C_gpu', C_gpu)
 delta = np.abs(C_gpu - C_cpu).max()
 
 print('')
-print('total time     %.2fs; per iteration %.3fs' % (diff, avg_time))
+print('total time     %.4fs; per iteration %.3fs' % (diff, avg_time))
 gigabytes = (GlobalRows * GlobalMids * 4 + GlobalMids * GlobalCols * 4 + GlobalRows * GlobalCols * 4) / 1000 / 1000 / 1000
 print('to/from global %.3f GB/s' % (gigabytes / avg_time))
 gigabytes_cores = (GlobalRows * GlobalCols * GlobalMids * 4 / 1000 / 1000 / 1000)
