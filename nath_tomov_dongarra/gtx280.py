@@ -144,17 +144,18 @@ C_cpu = A.dot(B)
 print('C_cpu', C_cpu)
 
 kernel = cl.Program(ctx, source).build(options='').__getattr__(kernelname)
-call_cl_kernel(
-    kernel, q, (BlockRows, BlockCols), (blockRows, 1),
-    GlobalRows, GlobalMids, GlobalCols,
-    BlockRows, BlockMids, BlockCols,
-    blockRows, blockMids, blockCols,
-    C_cl, A_cl, B_cl,
-    cl.LocalMemory(blockMids * blockCols * 4)
-)
+for it in range(3):
+    call_cl_kernel(
+        kernel, q, (BlockRows, BlockCols), (blockRows, 1),
+        GlobalRows, GlobalMids, GlobalCols,
+        BlockRows, BlockMids, BlockCols,
+        blockRows, blockMids, blockCols,
+        C_cl, A_cl, B_cl,
+        cl.LocalMemory(blockMids * blockCols * 4)
+    )
 q.finish()
 start = time.time()
-its = 10
+its = 20
 for it in range(its):
     call_cl_kernel(
         kernel, q, (BlockRows, BlockCols), (blockRows, 1),
@@ -175,11 +176,14 @@ cl.enqueue_copy(q, C_gpu, C_cl)
 q.finish()
 
 print('C_gpu', C_gpu)
+delta = np.abs(C_gpu - C_cpu).max()
 
 print('')
-print('total time     %.2fs per iteration %.3fs' % (diff, avg_time))
+print('total time     %.2fs; per iteration %.3fs' % (diff, avg_time))
 gigabytes = (GlobalRows * GlobalMids * 4 + GlobalMids * GlobalCols * 4 + GlobalRows * GlobalCols * 4) / 1000 / 1000 / 1000
 print('to/from global %.3f GB/s' % (gigabytes / avg_time))
 gigabytes_cores = (GlobalRows * GlobalCols * GlobalMids * 4 / 1000 / 1000 / 1000)
 print('to/from cores  %.1f GB/s' % (gigabytes_cores / avg_time))
 print('flops          %.1f GFLOPS/s' % (flops / avg_time / 1000 / 1000 / 1000))
+
+assert delta <= 1e-3
