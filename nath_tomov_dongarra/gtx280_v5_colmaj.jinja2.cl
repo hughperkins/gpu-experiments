@@ -33,7 +33,6 @@ kernel void {{kernelname}} (
                 for(int blockMid=0; blockMid < blockMids; blockMid++) {
                     int globalMid = BlockMid * blockMids + blockMid;
                     B_block[blockCol * blockMids + blockMid] = B[globalCol * GlobalMids + globalMid];
-                    //B_block[blockCol * blockMids + blockMid] = 4.0f;
                 }
             }
 
@@ -43,7 +42,6 @@ kernel void {{kernelname}} (
                 for(int blockMid=0; blockMid < {{blockMids}}; blockMid++) {
                     int globalMid = BlockMid * blockMids + blockMid;
                     A_row[blockMid] = A[globalMid * GlobalRows + globalRow];
-                    //A_row[blockMid] = 10.0f;
                 }
             }
 
