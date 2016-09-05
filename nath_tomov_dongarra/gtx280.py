@@ -62,7 +62,7 @@ print('BlockXs', BlockRows, BlockMids, BlockCols)
 #   A B C
 #   Ablk Bblk Cblk
 
-with open(join(script_dir, 'gtx280_v4.jinja2.cl')) as f:
+with open(join(script_dir, 'gtx280_v5.jinja2.cl')) as f:
     code_template = f.read()
 
 template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)

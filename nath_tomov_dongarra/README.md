@@ -209,3 +209,11 @@ to/from global 0.954 GB/s
 to/from cores  976.6 GB/s
 flops          162.8 GFLOPS/s
 ```
+
+float4'ing the B block download:
+```
+total time     0.1953s; per iteration 0.010s
+to/from global 1.289 GB/s
+to/from cores  1319.6 GB/s
+flops          219.9 GFLOPS/s
+```
