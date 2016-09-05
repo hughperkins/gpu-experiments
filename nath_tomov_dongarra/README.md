@@ -218,3 +218,8 @@ to/from cores  1319.6 GB/s
 flops          219.9 GFLOPS/s
 ```
 Lets call this [gtx280_v5.jinja2.cl](gtx280_v5.jinja2.cl)
+
+Lets try column-major, ie we transpose the input matrices first, and transpose the result (we could instead swap the
+rows and columns inside the kernel, and not transpose, but that sounds like more work to me)
+
+Let's call it [gtx280_v5_colmaj.jinja2.cl](gtx280_vt_colmaj.jinja2.cl)

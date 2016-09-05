@@ -1,3 +1,5 @@
+// this assumes that all matrices are column major
+
 kernel void {{kernelname}} (
         int GlobalRows, int GlobalMids, int GlobalCols,
         int BlockRows, int BlockMids, int BlockCols,

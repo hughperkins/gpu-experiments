@@ -29,4 +29,3 @@ def call_cl_kernel(kernel, queue, grid, block, *args):
             raise Exception('type not implemented %s' % type(arg))
         i += 1
     kernel(queue, globalSize, block, *newargs)
-
