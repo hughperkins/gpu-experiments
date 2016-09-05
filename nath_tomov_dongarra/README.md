@@ -331,3 +331,26 @@ to/from global 0.632 GB/s
 to/from cores  646.8 GB/s
 flops          107.8 GFLOPS/s
 ```
+Redo timings:
+- gtx280_v5_colmaj, no A download, no B download
+```
+total time     0.2413s; per iteration 0.012s
+to/from global 1.043 GB/s
+to/from cores  1067.8 GB/s
+flops          178.0 GFLOPS/s
+```
+- gtx280_v5_colmaj, no no B download
+```
+total time     0.2807s; per iteration 0.014s
+to/from global 0.897 GB/s
+to/from cores  918.1 GB/s
+flops          153.0 GFLOPS/s
+```
+- gtx280_v5_colmaj, no no A download
+```
+total time     0.3008s; per iteration 0.015s
+to/from global 0.837 GB/s
+to/from cores  856.8 GB/s
+flops          142.8 GFLOPS/s
+```
+```
