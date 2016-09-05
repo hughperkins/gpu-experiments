@@ -353,4 +353,12 @@ to/from global 0.837 GB/s
 to/from cores  856.8 GB/s
 flops          142.8 GFLOPS/s
 ```
+
+After hacking around for a bit, still on 109:
+- gtx280_v5_colmaj
+```
+total time     0.3921s; per iteration 0.020s
+to/from global 0.642 GB/s
+to/from cores  657.2 GB/s
+flops          109.5 GFLOPS/s
 ```

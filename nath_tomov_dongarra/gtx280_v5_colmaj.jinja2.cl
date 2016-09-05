@@ -30,18 +30,24 @@ kernel void {{kernelname}} (
             {
                 int blockCol = tid;
                 int globalCol = BlockCol * blockCols + blockCol;
-                for(int blockMid=0; blockMid < blockMids; blockMid++) {
-                    int globalMid = BlockMid * blockMids + blockMid;
-                    B_block[blockCol * blockMids + blockMid] = B[globalCol * GlobalMids + globalMid];
+                int BlockMid_blockMids = BlockMid * blockMids;
+                int globalCol_GlobalMids = globalCol * GlobalMids;
+                int BlockMid_blockMids_plus_globalCol_GlobalMids = BlockMid_blockMids + globalCol_GlobalMids;
+                int blockCol_blockMids = blockCol * blockMids;
+                #pragma unroll 2
+                for(int blockMid=0; blockMid < {{blockMids}}; blockMid++) {
+                    B_block[blockCol_blockMids + blockMid] = B[BlockMid_blockMids_plus_globalCol_GlobalMids + blockMid];
                 }
             }
 
             float A_row[{{blockMids}}];
             //float *A_row = (float*)A_row_float4;
             {
-                for(int blockMid=0; blockMid < {{blockMids}}; blockMid++) {
-                    int globalMid = BlockMid * blockMids + blockMid;
-                    A_row[blockMid] = A[globalMid * GlobalRows + globalRow];
+                int BlockMid_blockMids = BlockMid * blockMids;
+                //#pragma unroll 4
+                for(int blockMid=0; blockMid < blockMids; blockMid++) {
+                    int globalMid = BlockMid_blockMids + blockMid;
+                    A_row[blockMid] = A[(globalMid << 10) + globalRow];
                 }
             }
 
