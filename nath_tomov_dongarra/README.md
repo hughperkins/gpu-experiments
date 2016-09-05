@@ -149,7 +149,7 @@ if we look at to/from cores bandwidth, from previous reading, ie 1102.5GB/s,
 So, that makes sense: we should be being limited by the shared memory bandwidth.  And to improve that, we'd need to
 block over this, storing in registers.
 
-So, at this point, lets save the updated gtx280.jinja2.cl as gtx280_v3.jinja2.cl, and rerun.  Results are:
+So, at this point, lets save the updated gtx280.jinja2.cl as [gtx280_v3.jinja2.cl](nath_tomov_dongarra/gtx280_v3.jinja2.cl) , and rerun.  Results are:
 ```
 total time     0.4250s; per iteration 0.021s
 to/from global 0.592 GB/s
@@ -202,7 +202,7 @@ memory
 
 That didnt work, redcued occupancy too much it seems.
 
-After modifications in gtx280_v4.jinja2.cl, now get:
+After modifications in [gtx280_v4.jinja2.cl](nath_tomov_dongarra/gtx280_v4.jinja2.cl), now get:
 ```
 total time     0.2639s; per iteration 0.013s
 to/from global 0.954 GB/s
@@ -217,3 +217,4 @@ to/from global 1.289 GB/s
 to/from cores  1319.6 GB/s
 flops          219.9 GFLOPS/s
 ```
+Lets call this [gtx280_v5.jinja2.cl](nath_tomov_dongarra/gtx280_v5.jinja2.cl)
