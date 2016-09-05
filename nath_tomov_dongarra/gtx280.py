@@ -38,7 +38,7 @@ GlobalMids = 1024
 GlobalCols = 1024
 
 blockRows = 32
-blockMids = 16
+blockMids = 8
 blockCols = 32
 # NTBY = 1
 
@@ -62,12 +62,14 @@ print('BlockXs', BlockRows, BlockMids, BlockCols)
 #   A B C
 #   Ablk Bblk Cblk
 
-with open(join(script_dir, 'gtx280_v3.jinja2.cl')) as f:
+with open(join(script_dir, 'gtx280_v4.jinja2.cl')) as f:
     code_template = f.read()
 
 template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
 kernelname = 'gtx280'
-source = template.render(kernelname=kernelname, blockCols=blockCols, blockMids=blockMids)
+source = template.render(
+    kernelname=kernelname, blockCols=blockCols, blockMids=blockMids,
+    blockRows=blockRows)
 
 np.random.seed(123)
 A = np.random.randn(GlobalRows, GlobalMids).astype(np.float32)
@@ -97,7 +99,7 @@ for it in range(3):
         BlockRows, BlockMids, BlockCols,
         blockRows, blockMids, blockCols,
         C_cl, A_cl, B_cl,
-        cl.LocalMemory(blockMids * blockCols * 4)
+        cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(blockRows * blockMids * 4)
     )
 q.finish()
 start = time.time()
@@ -109,7 +111,7 @@ for it in range(its):
         BlockRows, BlockMids, BlockCols,
         blockRows, blockMids, blockCols,
         C_cl, A_cl, B_cl,
-        cl.LocalMemory(blockMids * blockCols * 4)
+        cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(blockRows * blockMids * 4 * 0)
     )
 q.finish()
 end = time.time()

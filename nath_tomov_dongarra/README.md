@@ -160,3 +160,52 @@ We're three times faster than right at the start of the readme :-)  We're up to 
 
 We'll use gtx280_v3.jinja2.cl as the new baseline, from this point on in this readme.
 
+Take out A and B reading again:
+- gtx280_v3, no A read, no B read
+```
+total time     0.2347s; per iteration 0.012s
+to/from global 1.072 GB/s
+to/from cores  1097.9 GB/s
+flops          183.0 GFLOPS/s
+```
+Put back in A read:
+- gtx280_v3, no B read:
+```
+total time     0.3509s; per iteration 0.018s
+to/from global 0.717 GB/s
+to/from cores  734.4 GB/s
+flops          122.4 GFLOPS/s
+```
+Try with no A read:
+- gtx280_v3, no A read:
+```
+total time     0.2487s; per iteration 0.012s
+to/from global 1.012 GB/s
+to/from cores  1036.2 GB/s
+flops          172.7 GFLOPS/s
+```
+Looks like A read is slowing it down the most.  Lets take out B read for now (to keep things simple(r),
+and keep in A read, ie:
+- gtx280_v3, no B read:
+```
+total time     0.3509s; per iteration 0.018s
+to/from global 0.717 GB/s
+to/from cores  734.4 GB/s
+flops          122.4 GFLOPS/s
+```
+Presumably this sucks becuase the A read is uncoallesced, unlike B read which is coallesced okish.
+
+To coallesce, we need to first read A into shared memory, I think?  (or, we could make the matrices column major?)
+lets use shared memory for now, and think about transposing the matrix later, if that doesnt work
+So, we will first read a block of A into shared memory, then read the data we want for our thread into private
+memory
+
+That didnt work, redcued occupancy too much it seems.
+
+After modifications in gtx280_v4.jinja2.cl, now get:
+```
+total time     0.2639s; per iteration 0.013s
+to/from global 0.954 GB/s
+to/from cores  976.6 GB/s
+flops          162.8 GFLOPS/s
+```
