@@ -326,5 +326,8 @@ flops          144.4 GFLOPS/s
 A bit slow.  Let's add back in A download:
 - gtx280_v5_colmaj
 ```
-
+total time     0.3984s; per iteration 0.020s
+to/from global 0.632 GB/s
+to/from cores  646.8 GB/s
+flops          107.8 GFLOPS/s
 ```
