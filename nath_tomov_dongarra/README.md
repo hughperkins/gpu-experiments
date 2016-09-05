@@ -222,6 +222,62 @@ Lets call this [gtx280_v5.jinja2.cl](gtx280_v5.jinja2.cl)
 Lets try column-major, ie we transpose the input matrices first, and transpose the result (we could instead swap the
 rows and columns inside the kernel, and not transpose, but that sounds like more work to me)
 
+Edit: let's double check this.  Imagine row major we have:
+
+```
+1 2   mmul   5 6     =  a b
+3 4          7 8        c d
+```
+In row-major, the data will be:
+```
+A = 1 2 3 4
+B = 5 6 7 8
+C = a b c d
+```
+If it is col major, the data should be laid out like:
+```
+A = 1 3 2 4
+B = 5 7 6 8
+C = a c b d
+```
+If we transpose A and B, row major, after transpose they will look like:
+```
+1 3    mmul   5 7
+2 4           6 8
+```
+The data, row major, will be laid out like:
+```
+A = 1 3 2 4
+B = 5 7 6 8
+```
+Its what we want
+
+After multiplication, if C is col major, it will look like:
+```
+a b
+c d
+```
+In col major, the data is laid out like:
+```
+C = a c b d
+```
+We want it laid out row major like:
+```
+C = a b c d
+```
+If we suppose C is row major, the output looks like:
+```
+C = a c
+    b d
+```
+We can convert it to how we want by transposing it, row major:
+```
+C = a b
+    c d
+```
+Edit2: gotcha: we should `.copy()` the numpy buffers before copying to opencl, otherwise `.transpose()` doesnt affect
+the layout of the data going into opencl.
+
 Let's call it [gtx280_v5_colmaj.jinja2.cl](gtx280_vt_colmaj.jinja2.cl)
 
 With only copying out of C, no C calc, A down, B down, using pure float1 copy:
@@ -244,3 +300,31 @@ flops          31568.6 GFLOPS/s
 ```
 Cool :-)
 Let's add C calc
+- gtx280_v5_colmaj, no A down, no B down
+```
+total time     0.2401s; per iteration 0.012s
+to/from global 1.048 GB/s
+to/from cores  1073.4 GB/s
+flops          178.9 GFLOPS/s
+```
+Not getting peak flops.  Presumably because limited by copying from shared B.  Try with constant in place of `B_block`
+```
+total time     0.0676s; per iteration 0.003s
+to/from global 3.722 GB/s
+to/from cores  3811.8 GB/s
+flops          635.3 GFLOPS/s
+```
+Peak flops (approx), so its limited by shared memory bandwidht, as expected for this algorithm.
+Let's add back in B download
+- gtx280_v5_colmaj, no A down
+```
+total time     0.2974s; per iteration 0.015s
+to/from global 0.846 GB/s
+to/from cores  866.6 GB/s
+flops          144.4 GFLOPS/s
+```
+A bit slow.  Let's add back in A download:
+- gtx280_v5_colmaj
+```
+
+```

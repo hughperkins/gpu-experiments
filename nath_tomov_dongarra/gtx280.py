@@ -34,9 +34,9 @@ initClGpu()
 
 times = []
 
-GlobalRows = 4096
-GlobalMids = 4096
-GlobalCols = 4096
+GlobalRows = 1024
+GlobalMids = 1024
+GlobalCols = 1024
 
 blockRows = 32
 blockMids = 8
@@ -83,9 +83,9 @@ q = lib_clgpuexp.q
 # cl = lib_clgpuexp.cl
 
 if args.colmaj:
-    At = A.transpose()
-    Bt = B.transpose()
-    Ct = C.transpose()
+    At = A.transpose().copy()
+    Bt = B.transpose().copy()
+    Ct = C.transpose().copy()
 
     At_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=At)
     Bt_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=Bt)
@@ -113,7 +113,7 @@ for it in range(3):
         BlockRows, BlockMids, BlockCols,
         blockRows, blockMids, blockCols,
         *data_args,
-        cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(blockRows * blockMids * 4)
+        cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(0)
     )
 q.finish()
 start = time.time()
@@ -125,7 +125,7 @@ for it in range(its):
         BlockRows, BlockMids, BlockCols,
         blockRows, blockMids, blockCols,
         *data_args,
-        cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(blockRows * blockMids * 4 * 0)
+        cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(0)
     )
 q.finish()
 end = time.time()
@@ -134,9 +134,10 @@ avg_time = diff / its
 flops = GlobalRows * GlobalRows * GlobalCols * 2
 # print('flops', flops)
 if args.colmaj:
-    Ct_gpu = C.copy().transpose()
+    Ct_gpu = C.copy().transpose().copy()
     cl.enqueue_copy(q, Ct_gpu, Ct_cl)
     q.finish()
+    print('Ct_gpu', Ct_gpu)
     C_gpu = Ct_gpu.transpose()
 else:
     C_gpu = C.copy()
@@ -144,6 +145,8 @@ else:
     q.finish()
 
 
+# print('A', A)
+# print('B', B)
 print('C_gpu', C_gpu)
 delta = np.abs(C_gpu - C_cpu).max()
 
