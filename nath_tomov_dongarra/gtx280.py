@@ -27,15 +27,16 @@ basename = path.basename(__file__).split('.')[0]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--printptx', type=bool, default=False)
+parser.add_argument('--colmaj', action='store_true')
 args = parser.parse_args()
 
 initClGpu()
 
 times = []
 
-GlobalRows = 1024
-GlobalMids = 1024
-GlobalCols = 1024
+GlobalRows = 4096
+GlobalMids = 4096
+GlobalCols = 4096
 
 blockRows = 32
 blockMids = 8
@@ -62,7 +63,7 @@ print('BlockXs', BlockRows, BlockMids, BlockCols)
 #   A B C
 #   Ablk Bblk Cblk
 
-with open(join(script_dir, 'gtx280_v5.jinja2.cl')) as f:
+with open(join(script_dir, 'gtx280_v5_colmaj.jinja2.cl')) as f:
     code_template = f.read()
 
 template = jinja2.Template(code_template, undefined=jinja2.StrictUndefined)
@@ -81,9 +82,22 @@ ctx = lib_clgpuexp.ctx
 q = lib_clgpuexp.q
 # cl = lib_clgpuexp.cl
 
-A_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=A)
-B_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=B)
-C_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=C)
+if args.colmaj:
+    At = A.transpose()
+    Bt = B.transpose()
+    Ct = C.transpose()
+
+    At_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=At)
+    Bt_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=Bt)
+    Ct_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=Ct)
+
+    data_args = [Ct_cl, At_cl, Bt_cl]
+else:
+    A_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=A)
+    B_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=B)
+    C_cl = cl.Buffer(ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=C)
+
+    data_args = [C_cl, A_cl, B_cl]
 
 C_cpu = A.dot(B)
 print('C_cpu', C_cpu)
@@ -98,7 +112,7 @@ for it in range(3):
         GlobalRows, GlobalMids, GlobalCols,
         BlockRows, BlockMids, BlockCols,
         blockRows, blockMids, blockCols,
-        C_cl, A_cl, B_cl,
+        *data_args,
         cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(blockRows * blockMids * 4)
     )
 q.finish()
@@ -110,7 +124,7 @@ for it in range(its):
         GlobalRows, GlobalMids, GlobalCols,
         BlockRows, BlockMids, BlockCols,
         blockRows, blockMids, blockCols,
-        C_cl, A_cl, B_cl,
+        *data_args,
         cl.LocalMemory(blockMids * blockCols * 4), cl.LocalMemory(blockRows * blockMids * 4 * 0)
     )
 q.finish()
@@ -119,9 +133,16 @@ diff = end - start
 avg_time = diff / its
 flops = GlobalRows * GlobalRows * GlobalCols * 2
 # print('flops', flops)
-C_gpu = C.copy()
-cl.enqueue_copy(q, C_gpu, C_cl)
-q.finish()
+if args.colmaj:
+    Ct_gpu = C.copy().transpose()
+    cl.enqueue_copy(q, Ct_gpu, Ct_cl)
+    q.finish()
+    C_gpu = Ct_gpu.transpose()
+else:
+    C_gpu = C.copy()
+    cl.enqueue_copy(q, C_gpu, C_cl)
+    q.finish()
+
 
 print('C_gpu', C_gpu)
 delta = np.abs(C_gpu - C_cpu).max()

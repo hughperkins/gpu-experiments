@@ -38,7 +38,7 @@ kernel void {{kernelname}} (
                 for(int blockMid4=0; blockMid4 < blockMids; blockMid4 += 4) {
                     int blockMid = blockMid4 + bcpy_midoffset;
                     int globalMid = BlockMid_blockMids + blockMid;
-                    B_block_float4[(blockMid * blockCols >> 2) + bcpy_col] = B_float4[(globalMid * GlobalCols >> 2) + bcpy_globalCol];
+                 //   B_block_float4[(blockMid * blockCols >> 2) + bcpy_col] = B_float4[(globalMid * GlobalCols >> 2) + bcpy_globalCol];
                 }
             }
 
@@ -47,15 +47,13 @@ kernel void {{kernelname}} (
             // but lets copy to private for now, no coasllescing, then try coallescing in v0.2
             float4 A_row_float4[{{blockMids // 4}}];
             float *A_row = (float*)A_row_float4;
-            {% if true %}
             {
             int globalOffset = ((globalRow * GlobalMids) >> 2) + ((BlockMid * blockMids) >> 2);
             //#pragma unroll 2
             for(int blockMid=0; blockMid < {{blockMids // 4}}; blockMid++) {
-                A_row_float4[blockMid] = A_float4[globalOffset + blockMid];
+               // A_row_float4[blockMid] = A_float4[globalOffset + blockMid];
             }
             }
-            {% endif %}
 
             // sync point (can remove if num threads == warpsize)
             //barrier(CLK_LOCAL_MEM_FENCE);
@@ -64,20 +62,17 @@ kernel void {{kernelname}} (
             // each thread handles a row of c, so needs to iterate over columns
             // but for each column, needs to iterate over middle too
             for(int blockMid=0; blockMid < {{blockMids}}; blockMid++) {
-                int blockMid_blockCols = blockMid * {{blockCols}};
-                float a = A_row[blockMid];
                 for(int blockCol=0; blockCol < {{blockCols}}; blockCol++) {
-                    C_row[blockCol] += a * B_block[blockMid_blockCols + blockCol];
+                    //C_row[blockCol] += A_row[blockMid] * B_block[blockCol * blockRows + blockMid];
                 }
             }
         }
     }
     // write C out
-    int globalRow_globalCols = globalRow * GlobalCols;
-    int BlockCol_blockCols = BlockCol * blockCols;
-    int globalRow_globalCols_plus_BlockCol_blockCols = (globalRow_globalCols + BlockCol_blockCols) >> 2;
     #pragma unroll
-    for(int blockCol=0; blockCol < {{blockCols // 4}}; blockCol++) {
-        C_float4[globalRow_globalCols_plus_BlockCol_blockCols + blockCol] = C_row_float4[blockCol];
+    for(int blockCol=0; blockCol < {{blockCols}}; blockCol++) {
+        int globalCol = BlockCol * blockCols + blockCol;
+        C[globalCol * GlobalRows + globalRow] = C_row[blockCol];
+        //C_float4[globalRow_globalCols_plus_BlockCol_blockCols + blockCol] = C_row_float4[blockCol];
     }
 }

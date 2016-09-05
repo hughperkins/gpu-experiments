@@ -223,3 +223,24 @@ Lets try column-major, ie we transpose the input matrices first, and transpose t
 rows and columns inside the kernel, and not transpose, but that sounds like more work to me)
 
 Let's call it [gtx280_v5_colmaj.jinja2.cl](gtx280_vt_colmaj.jinja2.cl)
+
+With only copying out of C, no C calc, A down, B down, using pure float1 copy:
+- gtx280_v5_colmaj, no A down, no B down, no C calc
+```
+total time     0.0058s; per iteration 0.000s
+to/from global 43.037 GB/s
+to/from cores  44070.1 GB/s
+flops          7345.0 GFLOPS/s
+```
+43GB/s.  But we have to divide by 3, because we're not downloading A or B, so 14.3GB/s.  Thats peak bandwidth.
+Awesomeness :-)  Coallesced copy out looks good.
+Check with M=N=K=4096
+- gtx280_v5_colmaj, no A down, no B down, no C calc, M=N=K=4096
+```
+total time     0.0871s; per iteration 0.004s
+to/from global 46.243 GB/s
+to/from cores  189411.8 GB/s
+flops          31568.6 GFLOPS/s
+```
+Cool :-)
+Let's add C calc
